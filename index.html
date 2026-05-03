@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="AG Planning">
 <meta name="application-name" content="AG Planning">
 <meta name="theme-color" content="#3DB8D4">
@@ -33,10 +33,24 @@
   --shadow-md:0 4px 16px rgba(0,30,50,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  /* Respecter les zones sûres de l'iPhone/iPad (notch, Dynamic Island, barre du bas) */
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+}
 
 /* HEADER (light, épuré) */
-.hdr{background:white;border-bottom:1px solid var(--border)}
+.hdr{background:white;border-bottom:1px solid var(--border);
+  /* Le fond du header s'étend dans les zones safe (sous le notch) */
+  margin-top:calc(-1 * env(safe-area-inset-top));
+  padding-top:env(safe-area-inset-top);
+  margin-left:calc(-1 * env(safe-area-inset-left));
+  margin-right:calc(-1 * env(safe-area-inset-right));
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+}
 .hdr-top{padding:0 18px;display:flex;align-items:center;justify-content:space-between;height:68px;gap:8px}
 .hdr-l{display:flex;align-items:center;gap:12px;min-width:0}
 .hdr-logo-img{height:42px;width:auto;object-fit:contain;flex-shrink:0}
@@ -245,7 +259,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
     <div class="hdr-r noprint">
-      <button class="hbtn hbtn-print" onclick="window.print()">🖨 <span style="margin-left:3px">Imprimer</span></button>
+      <button class="hbtn hbtn-print" onclick="doPrint()">📄 <span style="margin-left:3px">PDF</span></button>
       <button class="hbtn hbtn-add" id="btn-worker" onclick="openWorkerModal()">+ Ouvrier</button>
       <button class="hbtn hbtn-add2" id="btn-chantier" onclick="openChantierModal()">+ Chantier</button>
     </div>
@@ -500,6 +514,18 @@ function switchTab(t){
   document.getElementById('tab-agenda-content').style.display=t==='agenda'?'':'none';
   document.getElementById('btn-worker').style.display=t==='planning'?'':'none';
   document.getElementById('btn-chantier').style.display=t==='planning'?'':'none';
+}
+
+// Impression robuste (compatible iOS Safari)
+function doPrint(){
+  // Force le rafraîchissement avant impression
+  setTimeout(function(){
+    try{
+      window.print();
+    }catch(e){
+      alert('Impression non supportée. Utilise le menu Partager ⬆️ → Imprimer.');
+    }
+  },100);
 }
 
 // === WORKERS ===
