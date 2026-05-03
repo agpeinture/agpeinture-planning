@@ -533,7 +533,6 @@ function doPrint(){
                  (typeof jspdf !== 'undefined' && jspdf.jsPDF);
   
   if(!hasJsPDF){
-    // Fallback : impression native iOS (Partager → Imprimer)
     var ok = confirm('Génération PDF non disponible.\n\nVeux-tu utiliser l\'impression Safari à la place ?\n(Ouvre la fenêtre Partager — choisis "Imprimer")');
     if(ok){
       try{ window.print(); }
@@ -542,6 +541,27 @@ function doPrint(){
     return;
   }
   
+  // Pré-charger le logo en Image pour conversion fiable en canvas
+  var logoImg=new Image();
+  logoImg.crossOrigin='anonymous';
+  logoImg.onload=function(){
+    // Convertir le logo en data URI via canvas (méthode la plus fiable)
+    var canvas=document.createElement('canvas');
+    canvas.width=logoImg.naturalWidth;
+    canvas.height=logoImg.naturalHeight;
+    var ctx=canvas.getContext('2d');
+    ctx.drawImage(logoImg,0,0);
+    var logoDataUri=canvas.toDataURL('image/png');
+    generatePDF(logoDataUri);
+  };
+  logoImg.onerror=function(){
+    console.log('Logo non chargé, PDF sans logo');
+    generatePDF(null);
+  };
+  logoImg.src=LOGO_URI;
+}
+
+function generatePDF(logoDataUri){
   try{
     var jsPDF=(window.jspdf||jspdf).jsPDF;
     var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
@@ -561,9 +581,11 @@ function doPrint(){
     
     // Logo en haut à gauche
     var logoH=18,logoW=24;
-    try{
-      doc.addImage(LOGO_URI,'PNG',mg,y,logoW,logoH);
-    }catch(e){console.log('Logo PDF erreur:',e);}
+    if(logoDataUri){
+      try{
+        doc.addImage(logoDataUri,'PNG',mg,y,logoW,logoH);
+      }catch(e){console.log('Logo PDF erreur:',e);}
+    }
     
     // Titre à droite du logo
     var tx=mg+logoW+5;
