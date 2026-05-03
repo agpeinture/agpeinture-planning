@@ -247,6 +247,46 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </head>
 <body>
 
+<!-- ============ ÉCRAN MOT DE PASSE ============ -->
+<div id="lockScreen" style="position:fixed;inset:0;background:linear-gradient(135deg,#0a3d4f 0%,#3DB8D4 100%);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Inter',sans-serif">
+  <div style="background:white;border-radius:20px;padding:32px 28px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center">
+    <div style="font-size:48px;margin-bottom:12px">🔒</div>
+    <h2 style="color:#0a3d4f;margin:0 0 8px;font-weight:800;font-size:22px">AG Peinture</h2>
+    <p style="color:#7b8ca1;margin:0 0 24px;font-size:14px">Application protégée</p>
+    <input type="password" id="lockPwd" inputmode="numeric" placeholder="Mot de passe" autocomplete="off" style="width:100%;padding:14px 16px;border:2px solid #e0e8ef;border-radius:12px;font-size:18px;text-align:center;letter-spacing:4px;outline:none;font-family:inherit;box-sizing:border-box" onkeypress="if(event.key==='Enter')checkPwd()">
+    <p id="lockErr" style="color:#c1121f;margin:8px 0 0;font-size:13px;min-height:18px;font-weight:600"></p>
+    <button onclick="checkPwd()" style="width:100%;margin-top:16px;padding:14px;background:#3DB8D4;color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit">Entrer</button>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD="397312";
+  var KEY="agp_unlock_v1";
+  // Si déjà déverrouillé sur cet appareil, on ne montre pas l'écran
+  try{
+    if(localStorage.getItem(KEY)==="ok"){
+      document.getElementById('lockScreen').style.display='none';
+    }else{
+      // Focus sur le champ après chargement
+      setTimeout(function(){var i=document.getElementById('lockPwd');if(i)i.focus();},200);
+    }
+  }catch(e){}
+})();
+function checkPwd(){
+  var v=document.getElementById('lockPwd').value;
+  var err=document.getElementById('lockErr');
+  if(v==="397312"){
+    try{localStorage.setItem("agp_unlock_v1","ok");}catch(e){}
+    document.getElementById('lockScreen').style.display='none';
+    err.textContent='';
+  }else{
+    err.textContent='Mot de passe incorrect';
+    document.getElementById('lockPwd').value='';
+    document.getElementById('lockPwd').focus();
+  }
+}
+</script>
+
 <!-- HEADER -->
 <div class="hdr">
   <div class="hdr-top">
