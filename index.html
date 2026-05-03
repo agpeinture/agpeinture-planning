@@ -378,6 +378,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <div class="print-footer" id="print-footer"></div>
 
+<!-- ============ JSPDF (génération PDF) ============ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <!-- ============ FIREBASE ============ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -516,16 +519,178 @@ function switchTab(t){
   document.getElementById('btn-chantier').style.display=t==='planning'?'':'none';
 }
 
-// Impression robuste (compatible iOS Safari)
+// Génération PDF native avec jsPDF (compatible iPad/iPhone/Mac)
 function doPrint(){
-  // Force le rafraîchissement avant impression
-  setTimeout(function(){
-    try{
-      window.print();
-    }catch(e){
-      alert('Impression non supportée. Utilise le menu Partager ⬆️ → Imprimer.');
+  if(typeof jspdf==='undefined'&&typeof window.jspdf==='undefined'){
+    alert('Librairie PDF non chargée. Vérifie ta connexion internet.');
+    return;
+  }
+  try{
+    var jsPDF=(window.jspdf||jspdf).jsPDF;
+    var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    var pw=doc.internal.pageSize.getWidth();   // 297mm
+    var ph=doc.internal.pageSize.getHeight();  // 210mm
+    var mg=10;
+    var W=pw-mg*2;
+    var y=mg;
+    var cBlue=[61,184,212];
+    var cDark=[10,61,79];
+    var cMuted=[123,140,161];
+    var cBg=[245,250,253];
+
+    // === HEADER ===
+    doc.setFillColor(cBlue[0],cBlue[1],cBlue[2]);
+    doc.rect(mg,y,W,1,'F');y+=4;
+    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(cDark[0],cDark[1],cDark[2]);
+    doc.text('PLANNING ÉQUIPE',mg,y+2);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+    doc.text('AG Peinture · Newflash SA',mg,y+8);
+    // Date à droite
+    var dates=getWeekDates();
+    var monday=dates[0],sat=dates[5];
+    var weekTxt='Semaine '+getWeekNum(monday)+' — du '+fmtLong(monday)+' au '+fmtLong(sat)+' '+sat.getFullYear();
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(cBlue[0],cBlue[1],cBlue[2]);
+    doc.text(weekTxt,pw-mg,y+2,{align:'right'});
+    var d=new Date();
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+    doc.text('Imprimé le '+pad2(d.getDate())+'.'+pad2(d.getMonth()+1)+'.'+d.getFullYear(),pw-mg,y+8,{align:'right'});
+    y+=12;
+    doc.setFillColor(cBlue[0],cBlue[1],cBlue[2]);
+    doc.rect(mg,y,W,0.6,'F');y+=4;
+
+    // === ÉQUIPE ===
+    if(workers.length){
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+      doc.text('ÉQUIPE',mg,y+2);y+=3;
+      var x=mg;
+      workers.forEach(function(w){
+        var n=countWorkerDays(w.id);
+        var label=w.name+(n>0?' ('+n+'j)':'');
+        var tw=doc.getTextWidth(label)+10;
+        if(x+tw>pw-mg){x=mg;y+=8;}
+        // Pastille couleur
+        var rgb=hexToRgb(w.color||'#3DB8D4');
+        doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+        doc.circle(x+3,y+2,2.5,'F');
+        doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(6);
+        doc.text(w.initials,x+3,y+2.8,{align:'center'});
+        // Nom
+        doc.setTextColor(cDark[0],cDark[1],cDark[2]);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+        doc.text(label,x+7,y+3);
+        x+=tw;
+      });
+      y+=8;
     }
-  },100);
+
+    // === GRILLE CHANTIERS ===
+    if(chantiers.length){
+      var sorted=[].concat(chantiers).sort(function(a,b){
+        var order={encours:0,attente:1,termine:2};
+        return (order[a.status]||0)-(order[b.status]||0);
+      });
+      // Colonnes
+      var colC=55;  // colonne chantier
+      var colDay=(W-colC)/6;
+      // Header table
+      doc.setFillColor(cBg[0],cBg[1],cBg[2]);
+      doc.rect(mg,y,W,9,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(cDark[0],cDark[1],cDark[2]);
+      doc.text('CHANTIER',mg+2,y+5.5);
+      DAYS.forEach(function(d2,i){
+        var cx=mg+colC+colDay*i;
+        doc.text(d2,cx+colDay/2,y+4,{align:'center'});
+        doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+        doc.text(fmtDate(dates[i]),cx+colDay/2,y+8,{align:'center'});
+        doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(cDark[0],cDark[1],cDark[2]);
+      });
+      // Bordure haut
+      doc.setDrawColor(cBlue[0],cBlue[1],cBlue[2]);
+      doc.setLineWidth(0.4);
+      doc.line(mg,y+9,mg+W,y+9);
+      y+=9;
+
+      sorted.forEach(function(c){
+        if(y>ph-30){doc.addPage();y=mg;}
+        var rowH=20;
+        // Bordure gauche couleur du chantier
+        var rgb=hexToRgb(c.color||'#3DB8D4');
+        doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+        doc.rect(mg,y,1.2,rowH,'F');
+        // Texte chantier
+        doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(cDark[0],cDark[1],cDark[2]);
+        doc.text(c.name||'—',mg+3,y+5);
+        if(c.address){
+          doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+          doc.text(c.address,mg+3,y+9);
+        }
+        var stLbl={encours:'En cours',attente:'En attente',termine:'Terminé'};
+        doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(cBlue[0],cBlue[1],cBlue[2]);
+        doc.text(stLbl[c.status]||'En cours',mg+3,y+13);
+
+        // Cellules jours
+        DAYS.forEach(function(d2,i){
+          var dKey=dates[i].toISOString().slice(0,10);
+          var cell=assign[dKey+'_'+c.id]||{w:[]};
+          var cx=mg+colC+colDay*i;
+          // Bordure
+          doc.setDrawColor(220,228,234);
+          doc.setLineWidth(0.2);
+          doc.line(cx,y,cx,y+rowH);
+          if(cell.w&&cell.w.length){
+            // Pastilles ouvriers (max 3)
+            cell.w.slice(0,3).forEach(function(wid,wi){
+              var w=workers.find(function(x){return x.id===wid;});
+              if(!w)return;
+              var wrgb=hexToRgb(w.color||'#3DB8D4');
+              doc.setFillColor(wrgb[0],wrgb[1],wrgb[2]);
+              doc.circle(cx+colDay/2,y+3.5+wi*4.5,1.8,'F');
+              doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(5);
+              doc.text(w.initials,cx+colDay/2,y+4.2+wi*4.5,{align:'center'});
+            });
+            if(cell.w.length>3){
+              doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);doc.setFont('helvetica','bold');doc.setFontSize(6);
+              doc.text('+'+(cell.w.length-3),cx+colDay/2,y+17,{align:'center'});
+            }
+            // Horaires
+            doc.setTextColor(cBlue[0],cBlue[1],cBlue[2]);doc.setFont('helvetica','bold');doc.setFontSize(6.5);
+            var t=(cell.s||'')+'-'+(cell.e||'');
+            doc.text(t,cx+colDay/2,y+rowH-2,{align:'center'});
+          }
+        });
+        // Ligne séparatrice
+        doc.setDrawColor(220,228,234);
+        doc.setLineWidth(0.2);
+        doc.line(mg,y+rowH,mg+W,y+rowH);
+        y+=rowH;
+      });
+    }else{
+      doc.setFont('helvetica','italic');doc.setFontSize(10);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+      doc.text('Aucun chantier planifié pour cette semaine.',pw/2,y+15,{align:'center'});
+    }
+
+    // === FOOTER ===
+    var fy=ph-8;
+    doc.setDrawColor(cBlue[0],cBlue[1],cBlue[2]);
+    doc.setLineWidth(0.4);
+    doc.line(mg,fy-2,mg+W,fy-2);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+    doc.text('AG Peinture · Newflash SA · Case postale Nyon 2, 1260 Nyon · 079 489.16.39 · info@agpeinture.ch',pw/2,fy+2,{align:'center'});
+
+    // Sauvegarde du PDF (téléchargement direct, marche sur iOS)
+    var fname='Planning_S'+getWeekNum(monday)+'_'+monday.getFullYear()+'.pdf';
+    doc.save(fname);
+  }catch(e){
+    alert('Erreur PDF : '+e.message);
+    console.error(e);
+  }
+}
+
+function hexToRgb(hex){
+  if(!hex)return[61,184,212];
+  hex=hex.replace('#','');
+  if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  var n=parseInt(hex,16);
+  return[(n>>16)&255,(n>>8)&255,n&255];
 }
 
 // === WORKERS ===
