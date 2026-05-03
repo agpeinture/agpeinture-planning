@@ -259,7 +259,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
     <div class="hdr-r noprint">
-      <button class="hbtn hbtn-print" onclick="doPrint()">📄 <span style="margin-left:3px">PDF</span></button>
+      <button class="hbtn hbtn-print" onclick="console.log('PDF clicked');doPrint()">📄 <span style="margin-left:3px">PDF</span></button>
       <button class="hbtn hbtn-add" id="btn-worker" onclick="openWorkerModal()">+ Ouvrier</button>
       <button class="hbtn hbtn-add2" id="btn-chantier" onclick="openChantierModal()">+ Chantier</button>
     </div>
@@ -380,6 +380,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- ============ JSPDF (génération PDF) ============ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // Fallback si CDN cloudflare KO
+  if(typeof window.jspdf==='undefined'){
+    document.write('<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"><\/script>');
+  }
+</script>
 
 <!-- ============ FIREBASE ============ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -521,10 +527,20 @@ function switchTab(t){
 
 // Génération PDF native avec jsPDF (compatible iPad/iPhone/Mac)
 function doPrint(){
-  if(typeof jspdf==='undefined'&&typeof window.jspdf==='undefined'){
-    alert('Librairie PDF non chargée. Vérifie ta connexion internet.');
+  // Test jsPDF
+  var hasJsPDF = (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) || 
+                 (typeof jspdf !== 'undefined' && jspdf.jsPDF);
+  
+  if(!hasJsPDF){
+    // Fallback : impression native iOS (Partager → Imprimer)
+    var ok = confirm('Génération PDF non disponible.\n\nVeux-tu utiliser l\'impression Safari à la place ?\n(Ouvre la fenêtre Partager — choisis "Imprimer")');
+    if(ok){
+      try{ window.print(); }
+      catch(e){ alert('Utilise le bouton Partager ⬆️ de Safari → Imprimer.'); }
+    }
     return;
   }
+  
   try{
     var jsPDF=(window.jspdf||jspdf).jsPDF;
     var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
