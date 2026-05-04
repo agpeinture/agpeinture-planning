@@ -203,11 +203,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .wg-wname{font-size:11px}
   .wg-chantier-tag{font-size:9px}
 }
-/* COPY DATE INLINE */
-.tg-copy-row{display:flex;align-items:center;gap:4px;margin-top:6px}
-.tg-copy-date{border:1.5px dashed var(--border);border-radius:8px;padding:3px 5px;font-size:10px;font-family:'Inter',sans-serif;color:var(--muted);background:white;cursor:pointer;flex:1;min-width:0}
-.tg-copy-date:focus{outline:none;border-color:var(--brand)}
-@media print{.tg-copy-row{display:none!important}}
 .search-bar{background:white;padding:6px 18px 8px;border-bottom:1px solid var(--border)}
 .search-input{width:100%;box-sizing:border-box;padding:9px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#f8fafc}
 .search-input:focus{border-color:var(--brand)}
@@ -512,6 +507,14 @@ function checkPwd(){
     </div>
     <div class="frow"><label>Couleur</label><div class="color-row" id="c-colors"></div></div>
     <div class="frow"><label>Notes</label><textarea id="c-notes" placeholder="Précisions techniques, RAL, ordre des étapes..."></textarea></div>
+    <div class="frow" id="c-copy-section" style="display:none">
+      <label>📋 Copier ce chantier vers</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="c-copy-to" type="date" style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit">
+        <button type="button" onclick="doCopyChantierFromModal()" style="background:var(--brand);color:white;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">📋 Copier</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4">Les 6 jours de la semaine affichée seront copiés vers la semaine choisie.</div>
+    </div>
     <div class="mbtns">
       <button class="bcancel" onclick="closeOverlay('chantier')">Annuler</button>
       <button class="bdel" id="c-del-btn" style="display:none" onclick="deleteChantier()">Supprimer</button>
@@ -892,9 +895,11 @@ function renderChantiersTab(){
   });
   el.innerHTML=html;
 }
-function copyChantierInline(chantierId, input){
-  var toStr=input.value;
-  if(!toStr)return;
+function doCopyChantierFromModal(){
+  var toStr=document.getElementById('c-copy-to').value;
+  if(!toStr){alert('Choisis une date destination.');return;}
+  var cid=editingChantier;
+  if(!cid){alert('Enregistre le chantier d\'abord.');return;}
   function getMondayOf(dateStr){
     var d=new Date(dateStr+'T12:00:00');
     var day=d.getDay();
@@ -904,20 +909,19 @@ function copyChantierInline(chantierId, input){
   var fromMonday=getWeekDates()[0];
   var toMonday=getMondayOf(toStr);
   if(fromMonday.toISOString().slice(0,10)===toMonday.toISOString().slice(0,10)){
-    alert('Destination identique à la semaine affichée.');
-    input.value='';return;
+    alert('Destination identique à la semaine affichée.');return;
   }
   var count=0;
   for(var i=0;i<6;i++){
     var srcKey=addDays(fromMonday,i).toISOString().slice(0,10);
     var dstKey=addDays(toMonday,i).toISOString().slice(0,10);
-    var src=assign[srcKey+'_'+chantierId];
+    var src=assign[srcKey+'_'+cid];
     if(src&&src.w&&src.w.length){
-      assign[dstKey+'_'+chantierId]={w:src.w.slice(),s:src.s,e:src.e};
+      assign[dstKey+'_'+cid]={w:src.w.slice(),s:src.s,e:src.e};
       count++;
     }
   }
-  input.value='';
+  document.getElementById('c-copy-to').value='';
   if(count===0){alert('Aucune affectation à copier sur ce chantier.');}
   else{save();render();alert(count+' jour'+(count>1?'s':'')+' copié'+(count>1?'s':'')+' ✓');}
 }
@@ -1263,6 +1267,8 @@ function openChantierModal(id){
   buildWorkerPickList('c-default-workers',c&&c.defaultWorkers?c.defaultWorkers:[]);
   sel.cColor=c?c.color:COLORS[(chantiers.length+3)%COLORS.length];
   sel.cStatus=c?(c.status||'encours'):'encours';
+  document.getElementById('c-copy-section').style.display=c?'':'none';
+  document.getElementById('c-copy-to').value='';
   document.getElementById('c-del-btn').style.display=c?'':'none';
   buildColorPicker('c-colors','cColor');
   setStatusUI();
@@ -1466,10 +1472,6 @@ function renderGrid(){
       +'<span class="tg-status '+(stCl[c.status]||'st-encours')+'">'+(stLbl[c.status]||'En cours')+'</span>'
       +'<button class="tg-edit" onclick="openChantierModal('+c.id+')" title="Modifier">✎</button>'
       +(c.notes&&!compact?'<span style="font-size:12px" title="'+escapeHtml(c.notes)+'">📝</span>':'')
-      +'</div>'
-      +'<div class="tg-copy-row" title="Copier vers une autre semaine">'
-      +'<span style="font-size:10px;color:var(--muted);font-weight:600">📋</span>'
-      +'<input type="date" class="tg-copy-date" onchange="copyChantierInline('+c.id+',this)" onclick="event.stopPropagation()">'
       +'</div>'
       +'</div>';
     weeks.forEach(function(dates){
