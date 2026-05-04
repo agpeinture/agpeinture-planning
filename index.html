@@ -181,7 +181,49 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .agenda-empty p{color:var(--text);font-weight:700;margin-bottom:8px;font-size:16px}
 .agenda-empty span{color:var(--muted);font-size:13px;font-weight:500;line-height:1.6}
 
-/* PRINT — version PDF propre */
+/* WORKER VIEW GRID */
+.wgrid-wrap{background:white;border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px}
+.wgrid{display:grid;grid-template-columns:150px repeat(6,minmax(80px,1fr));min-width:100%}
+.wg-hdr{background:var(--bg);padding:12px 14px;display:flex;align-items:center;border-bottom:1px solid var(--border)}
+.wg-hdr-lbl{font-family:'Inter',sans-serif;color:var(--muted);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700}
+.wg-hdr-day{background:var(--bg);padding:10px 4px;text-align:center;border-bottom:1px solid var(--border);border-left:1px solid var(--border)}
+.wg-worker-info{padding:12px 10px;border-bottom:1px solid var(--border);background:white;display:flex;align-items:center;gap:8px}
+.wg-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0}
+.wg-wname{font-size:13px;font-weight:700;color:var(--text);line-height:1.2}
+.wg-wdays{font-size:10px;font-weight:600;color:var(--brand)}
+.wg-cell{padding:6px 4px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);background:white;min-height:70px;display:flex;flex-direction:column;gap:3px;align-items:stretch}
+.wg-cell.empty{background:#fcfdfe}
+.wg-chantier-tag{border-radius:8px;padding:3px 6px;font-size:10px;font-weight:700;color:white;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wg-time{font-size:9px;font-weight:600;color:var(--muted);text-align:center;margin-top:2px}
+/* Indicateur chantier non couvert */
+.chantier-uncovered{display:inline-block;margin-left:4px;font-size:11px;vertical-align:middle}
+@media (max-width:600px){
+  .wgrid{grid-template-columns:110px repeat(6,minmax(56px,1fr))}
+  .wg-dot{width:24px;height:24px;font-size:9px}
+  .wg-wname{font-size:11px}
+  .wg-chantier-tag{font-size:9px}
+}
+/* PERIOD SELECTOR BAR */
+.period-bar{background:white;padding:7px 18px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.period-bar-lbl{font-size:11px;font-weight:700;color:var(--muted);margin-right:2px;white-space:nowrap}
+.pbtn{background:white;border:1.5px solid var(--border);color:var(--muted);border-radius:9px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Inter',sans-serif;transition:all 0.15s;white-space:nowrap}
+.pbtn.active{background:var(--brand);color:white;border-color:var(--brand)}
+.pbtn:active{opacity:0.8}
+.pbtn-action{background:var(--brand-bg);color:var(--brand);border:1.5px solid transparent;border-radius:9px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Inter',sans-serif;white-space:nowrap}
+.pbtn-action:active{background:var(--brand);color:white}
+.pbtn-filter{background:white;border:1.5px solid var(--border);color:var(--muted);border-radius:9px;padding:5px 11px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Inter',sans-serif;white-space:nowrap;margin-left:auto}
+.pbtn-filter.active{background:#E8F8EE;color:var(--green);border-color:var(--green)}
+/* Multi-week grid */
+.tgrid-wrap.multiweek{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tg-week-hdr{background:var(--brand-bg);padding:5px 10px;border-left:1px solid var(--border);border-bottom:1px solid var(--brand);display:flex;align-items:center;justify-content:center}
+.tg-week-hdr-lbl{font-size:10px;font-weight:700;color:var(--brand);text-align:center;font-family:'Inter',sans-serif}
+.tg-cell.compact{min-height:52px;padding:4px 2px}
+.tg-cell.compact .tg-add{margin-top:10px;width:22px;height:22px;font-size:16px}
+.tg-cell.compact .tg-cdot{width:20px;height:20px;font-size:8px}
+.tg-cell.compact .tg-cell-time{font-size:8px}
+.tg-hdr-day.compact{padding:5px 2px}
+.tg-hdr-day.compact .tg-hdr-day-lbl{font-size:10px}
+.tg-hdr-day.compact .tg-hdr-day-date{font-size:9px}
 @media print{
   @page{size:A4 landscape;margin:10mm}
   .noprint{display:none!important}
@@ -306,18 +348,28 @@ function checkPwd(){
   </div>
   <div class="hdr-tabs">
     <button class="htab active" id="tab-planning" onclick="switchTab('planning')"><span class="ico">🏗️</span> Planning Équipe</button>
+    <button class="htab" id="tab-workers" onclick="switchTab('workers')"><span class="ico">👷</span> Par Ouvrier</button>
     <button class="htab" id="tab-agenda" onclick="switchTab('agenda')"><span class="ico">📅</span> Agenda Personnel</button>
   </div>
 </div>
 
 <!-- WEEK NAV -->
 <div class="weeknav noprint">
-  <button class="wnav-btn" onclick="changeWeek(-1)">← Semaine préc.</button>
+  <button class="wnav-btn" id="btn-prev" onclick="changeWeek(-viewPeriod)">← Préc.</button>
   <div class="wnav-info">
     <div class="wnav-title" id="week-title">Semaine — au —</div>
-    <button class="wnav-today" id="week-today" onclick="setWeek(0)" style="display:none">↩ Cette semaine</button>
+    <button class="wnav-today" id="week-today" onclick="setWeek(0)" style="display:none">↩ Aujourd'hui</button>
   </div>
-  <button class="wnav-btn" onclick="changeWeek(1)">Semaine suiv. →</button>
+  <button class="wnav-btn" id="btn-next" onclick="changeWeek(viewPeriod)">Suiv. →</button>
+</div>
+<div class="period-bar noprint">
+  <span class="period-bar-lbl">Afficher :</span>
+  <button class="pbtn active" id="pb-1" onclick="setViewPeriod(1)">1 sem.</button>
+  <button class="pbtn" id="pb-2" onclick="setViewPeriod(2)">2 sem.</button>
+  <button class="pbtn" id="pb-4" onclick="setViewPeriod(4)">1 mois</button>
+  <button class="pbtn" id="pb-8" onclick="setViewPeriod(8)">2 mois</button>
+  <button class="pbtn-action" onclick="copyPeriod()" title="Copier toutes les affectations vers la période suivante">📋 Copier →</button>
+  <button class="pbtn-filter" id="btn-filter-termine" onclick="toggleFilterTermine()">✅ Masquer terminés</button>
 </div>
 
 <!-- MAIN -->
@@ -332,6 +384,11 @@ function checkPwd(){
   <div id="tab-planning-content">
     <div class="workers-row" id="workers-row"></div>
     <div id="grid-container"></div>
+  </div>
+
+  <!-- VUE PAR OUVRIER TAB -->
+  <div id="tab-workers-content" style="display:none">
+    <div id="worker-grid-container"></div>
   </div>
 
   <!-- AGENDA TAB -->
@@ -366,6 +423,7 @@ function checkPwd(){
     <h3 id="chantier-h3">Nouveau chantier</h3>
     <div class="frow"><label>Nom du chantier</label><input id="c-name" type="text" placeholder="Architectonico, Nyon 1345..."></div>
     <div class="frow"><label>Adresse</label><input id="c-addr" type="text" placeholder="Rue, ville..."></div>
+    <div class="frow"><label>Téléphone contact</label><input id="c-phone" type="tel" placeholder="079 000 00 00"></div>
     <div class="frow"><label>Statut</label>
       <div class="status-row">
         <button data-status="encours" onclick="setStatus(this)">🔵 En cours</button>
@@ -565,6 +623,8 @@ var workers=JSON.parse(localStorage.getItem('agp_workers')||'[]');
 var chantiers=JSON.parse(localStorage.getItem('agp_chantiers')||'[]');
 var assign=JSON.parse(localStorage.getItem('agp_assign')||'{}');
 var weekOff=0;
+var viewPeriod=1;
+var filterTermine=false;
 var activeTab='planning';
 var editingWorker=null,editingChantier=null,editingAssign=null;
 var sel={wColor:COLORS[0],cColor:COLORS[0],cStatus:'encours'};
@@ -580,16 +640,65 @@ function getWeekDates(){
   monday.setDate(monday.getDate()+weekOff*7);
   return DAYS.map(function(_,i){return addDays(monday,i);});
 }
+function getPeriodWeeks(){
+  var weeks=[];
+  for(var w=0;w<viewPeriod;w++){
+    var monday=getMonday(new Date());
+    monday.setDate(monday.getDate()+(weekOff+w)*7);
+    weeks.push(DAYS.map(function(_,i){return addDays(monday,i);}));
+  }
+  return weeks;
+}
 function changeWeek(n){weekOff+=n;render();}
 function setWeek(n){weekOff=n;render();}
+function setViewPeriod(n){
+  viewPeriod=n;
+  [1,2,4,8].forEach(function(x){
+    var el=document.getElementById('pb-'+x);
+    if(el)el.classList.toggle('active',x===n);
+  });
+  render();
+}
+function toggleFilterTermine(){
+  filterTermine=!filterTermine;
+  var btn=document.getElementById('btn-filter-termine');
+  if(btn)btn.classList.toggle('active',filterTermine);
+  renderGrid();
+}
+function copyPeriod(){
+  var weeks=getPeriodWeeks();
+  var count=0;
+  weeks.forEach(function(dates){
+    dates.forEach(function(date){
+      var srcKey=date.toISOString().slice(0,10);
+      var dstDate=addDays(date,viewPeriod*7);
+      var dstKey=dstDate.toISOString().slice(0,10);
+      chantiers.forEach(function(c){
+        var src=assign[srcKey+'_'+c.id];
+        if(src&&src.w&&src.w.length){
+          assign[dstKey+'_'+c.id]={w:src.w.slice(),s:src.s,e:src.e};
+          count++;
+        }
+      });
+    });
+  });
+  if(count===0){alert('Aucune affectation à copier sur cette période.');}
+  else{
+    save();
+    var msg=count+' affectation'+(count>1?'s':'')+' copiée'+(count>1?'s':'')+' vers la période suivante.';
+    alert(msg);
+  }
+}
 
 function switchTab(t){
   activeTab=t;
   document.getElementById('tab-planning').classList.toggle('active',t==='planning');
+  document.getElementById('tab-workers').classList.toggle('active',t==='workers');
   document.getElementById('tab-agenda').classList.toggle('active',t==='agenda');
   document.getElementById('tab-planning-content').style.display=t==='planning'?'':'none';
+  document.getElementById('tab-workers-content').style.display=t==='workers'?'':'none';
   document.getElementById('tab-agenda-content').style.display=t==='agenda'?'':'none';
-  document.getElementById('btn-worker').style.display=t==='planning'?'':'none';
+  document.getElementById('btn-worker').style.display=t==='planning'||t==='workers'?'':'none';
   document.getElementById('btn-chantier').style.display=t==='planning'?'':'none';
 }
 
@@ -739,6 +848,10 @@ function generatePDF(logoDataUri){
           doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
           doc.text(c.address,mg+3,y+9);
         }
+        if(c.phone){
+          doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(cMuted[0],cMuted[1],cMuted[2]);
+          doc.text('📞 '+c.phone,mg+3,y+(c.address?13:9));
+        }
         var stLbl={encours:'En cours',attente:'En attente',termine:'Terminé'};
         doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(cBlue[0],cBlue[1],cBlue[2]);
         doc.text(stLbl[c.status]||'En cours',mg+3,y+13);
@@ -878,6 +991,7 @@ function openChantierModal(id){
   document.getElementById('chantier-h3').textContent=c?'Modifier chantier':'Nouveau chantier';
   document.getElementById('c-name').value=c?c.name:'';
   document.getElementById('c-addr').value=c?(c.address||''):'';
+  document.getElementById('c-phone').value=c?(c.phone||''):'';
   document.getElementById('c-notes').value=c?(c.notes||''):'';
   sel.cColor=c?c.color:COLORS[(chantiers.length+3)%COLORS.length];
   sel.cStatus=c?(c.status||'encours'):'encours';
@@ -895,7 +1009,7 @@ function setStatusUI(){
 function saveChantier(){
   var name=document.getElementById('c-name').value.trim();
   if(!name){alert('Saisis le nom du chantier');return;}
-  var data={name:name,address:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus};
+  var data={name:name,address:document.getElementById('c-addr').value.trim(),phone:document.getElementById('c-phone').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus};
   if(editingChantier){
     var c=chantiers.find(function(x){return x.id===editingChantier;});
     if(c)Object.assign(c,data);
@@ -1005,6 +1119,7 @@ function saveAssign(){
 }
 function clearAssign(){
   if(!editingAssign)return;
+  if(!confirm('Vider cette affectation ? Les ouvriers assignés seront retirés.'))return;
   var key=editingAssign.dateKey+'_'+editingAssign.chantierId;
   delete assign[key];
   save();closeOverlay('assign');render();
@@ -1013,58 +1128,142 @@ function clearAssign(){
 // === GRID RENDER ===
 function renderGrid(){
   var el=document.getElementById('grid-container');
-  if(!chantiers.length){
-    el.innerHTML='<div class="empty-msg"><div class="ei">🏗️</div><p>Aucun chantier</p><span style="font-size:13px;font-weight:500">Tape sur "+ Chantier" en haut pour commencer</span></div>';
+  var allChantiers=filterTermine?chantiers.filter(function(c){return c.status!=='termine';}):chantiers;
+  if(!allChantiers.length){
+    el.innerHTML='<div class="empty-msg"><div class="ei">🏗️</div><p>'+(chantiers.length?'Tous les chantiers sont masqués':'Aucun chantier')+'</p><span style="font-size:13px;font-weight:500">'+(chantiers.length?'Désactive le filtre pour les afficher':'Tape sur "+ Chantier" en haut pour commencer')+'</span></div>';
     return;
   }
-  var dates=getWeekDates();
-  var sorted=[].concat(chantiers).sort(function(a,b){
+  var weeks=getPeriodWeeks();
+  var compact=viewPeriod>1;
+  var totalDays=viewPeriod*6;
+  var dayW=compact?(viewPeriod<=2?65:viewPeriod<=4?50:38):80;
+  var infoW=compact?140:170;
+  var sorted=[].concat(allChantiers).sort(function(a,b){
     var order={encours:0,attente:1,termine:2};
     return (order[a.status]||0)-(order[b.status]||0);
   });
   var stLbl={encours:'En cours',attente:'En attente',termine:'Terminé'};
   var stCl={encours:'st-encours',attente:'st-attente',termine:'st-termine'};
+  var gridCols=infoW+'px repeat('+totalDays+','+(compact?dayW+'px':'minmax('+dayW+'px,1fr)')+')';
+  var html='<div class="tgrid-wrap'+(compact?' multiweek':'')+'"><div class="tgrid" style="grid-template-columns:'+gridCols+'">';
 
-  // Build grid
-  var html='<div class="tgrid-wrap"><div class="tgrid">';
-  // Header row
-  html+='<div class="tg-hdr"><span class="tg-hdr-lbl">Chantier</span></div>';
+  // Week group headers (only in multi-week)
+  if(compact){
+    html+='<div class="tg-hdr" style="border-bottom:1px solid var(--border)"><span class="tg-hdr-lbl">Chantier</span></div>';
+    weeks.forEach(function(dates){
+      var mon=dates[0],sat=dates[5];
+      html+='<div class="tg-week-hdr" style="grid-column:span 6"><span class="tg-week-hdr-lbl">S'+getWeekNum(mon)+' — '+fmtDate(mon)+' au '+fmtDate(sat)+'</span></div>';
+    });
+  }
+
+  // Day headers
+  if(!compact){
+    html+='<div class="tg-hdr"><span class="tg-hdr-lbl">Chantier</span></div>';
+  }else{
+    html+='<div class="tg-hdr" style="border-bottom:1px solid var(--border)"></div>';
+  }
+  weeks.forEach(function(dates){
+    DAYS.forEach(function(d,i){
+      html+='<div class="tg-hdr-day'+(compact?' compact':'')+'">'
+        +'<div class="tg-hdr-day-lbl">'+d+'</div>'
+        +'<div class="tg-hdr-day-date">'+fmtDate(dates[i])+'</div>'
+        +'</div>';
+    });
+  });
+
+  // Chantier rows
+  sorted.forEach(function(c){
+    var allDates=[];
+    weeks.forEach(function(dates){dates.forEach(function(d){allDates.push(d);});});
+    var hasCoverage=allDates.some(function(date){
+      var dKey=date.toISOString().slice(0,10);
+      var cell=assign[dKey+'_'+c.id];
+      return cell&&cell.w&&cell.w.length>0;
+    });
+    html+='<div class="tg-c-info" style="border-left-color:'+c.color+'">'
+      +'<div class="tg-c-name">'+escapeHtml(c.name)+(hasCoverage||c.status==='termine'?'':'<span class="chantier-uncovered" title="Aucun ouvrier sur cette période">⚠️</span>')+'</div>'
+      +(c.address&&!compact?'<div class="tg-c-addr">'+escapeHtml(c.address)+'</div>':'')
+      +'<div class="tg-c-bot">'
+      +'<span class="tg-status '+(stCl[c.status]||'st-encours')+'">'+(stLbl[c.status]||'En cours')+'</span>'
+      +'<button class="tg-edit" onclick="openChantierModal('+c.id+')" title="Modifier">✎</button>'
+      +(c.notes&&!compact?'<span style="font-size:12px" title="'+escapeHtml(c.notes)+'">📝</span>':'')
+      +'</div>'
+      +'</div>';
+    weeks.forEach(function(dates){
+      DAYS.forEach(function(d,i){
+        var dKey=dates[i].toISOString().slice(0,10);
+        var cell=assign[dKey+'_'+c.id]||{w:[]};
+        var has=cell.w&&cell.w.length>0;
+        html+='<div class="tg-cell'+(has?'':' empty')+(compact?' compact':'')+'" onclick="openAssignModal('+c.id+',\''+dKey+'\',\''+d+'\',\''+fmtDate(dates[i])+'\')">';
+        if(has){
+          html+='<div class="tg-cell-dots">';
+          cell.w.slice(0,compact?3:4).forEach(function(wid){
+            var w=workers.find(function(x){return x.id===wid;});
+            if(w)html+='<div class="tg-cdot" style="background:'+w.color+'" title="'+escapeHtml(w.name)+'">'+w.initials+'</div>';
+          });
+          var maxDots=compact?3:4;
+          if(cell.w.length>maxDots)html+='<div class="tg-cdot" style="background:#888">+'+(cell.w.length-maxDots)+'</div>';
+          html+='</div>';
+          if(!compact){
+            html+='<div class="tg-cell-time">'+(cell.s||'')+'–<br>'+(cell.e||'')+'</div>';
+            var names=cell.w.map(function(wid){var w=workers.find(function(x){return x.id===wid;});return w?w.name:'';}).filter(Boolean).slice(0,3).join(', ');
+            if(names)html+='<div class="tg-cell-names">'+escapeHtml(names)+'</div>';
+          }else if(cell.s){
+            html+='<div class="tg-cell-time">'+(cell.s||'').replace(':','h')+'</div>';
+          }
+        }else{
+          html+='<div class="tg-add">＋</div>';
+        }
+        html+='</div>';
+      });
+    });
+  });
+  html+='</div></div>';
+  el.innerHTML=html;
+}
+
+// === WORKER VIEW ===
+function renderWorkerView(){
+  var el=document.getElementById('worker-grid-container');
+  if(!el)return;
+  if(!workers.length){
+    el.innerHTML='<div class="empty-msg"><div class="ei">👷</div><p>Aucun ouvrier</p><span>Ajoute des ouvriers pour voir leur planning</span></div>';
+    return;
+  }
+  var dates=getWeekDates();
+  var html='<div class="wgrid-wrap"><div class="wgrid">';
+  // Header
+  html+='<div class="wg-hdr"><span class="wg-hdr-lbl">Ouvrier</span></div>';
   DAYS.forEach(function(d,i){
-    html+='<div class="tg-hdr-day">'
+    html+='<div class="wg-hdr-day">'
       +'<div class="tg-hdr-day-lbl">'+d+'</div>'
       +'<div class="tg-hdr-day-date">'+fmtDate(dates[i])+'</div>'
       +'</div>';
   });
-  // Body rows
-  sorted.forEach(function(c){
-    html+='<div class="tg-c-info" style="border-left-color:'+c.color+'">'
-      +'<div class="tg-c-name">'+escapeHtml(c.name)+'</div>'
-      +(c.address?'<div class="tg-c-addr">'+escapeHtml(c.address)+'</div>':'')
-      +'<div class="tg-c-bot">'
-      +'<span class="tg-status '+(stCl[c.status]||'st-encours')+'">'+(stLbl[c.status]||'En cours')+'</span>'
-      +'<button class="tg-edit" onclick="openChantierModal('+c.id+')" title="Modifier">✎</button>'
-      +(c.notes?'<span style="font-size:12px" title="'+escapeHtml(c.notes)+'">📝</span>':'')
-      +'</div>'
-      +'</div>';
+  // Worker rows
+  workers.forEach(function(w){
+    var n=countWorkerDays(w.id);
+    html+='<div class="wg-worker-info" onclick="openWorkerModal('+w.id+')" style="cursor:pointer">'
+      +'<div class="wg-dot" style="background:'+w.color+'">'+w.initials+'</div>'
+      +'<div><div class="wg-wname">'+escapeHtml(w.name)+'</div>'
+      +(n>0?'<div class="wg-wdays">'+n+' jour'+(n>1?'s':'')+'</div>':'<div class="wg-wdays" style="color:var(--muted)">Libre</div>')
+      +'</div></div>';
     DAYS.forEach(function(d,i){
       var dKey=dates[i].toISOString().slice(0,10);
-      var cell=assign[dKey+'_'+c.id]||{w:[]};
-      var has=cell.w&&cell.w.length>0;
-      html+='<div class="tg-cell'+(has?'':' empty')+'" onclick="openAssignModal('+c.id+',\''+dKey+'\',\''+d+'\',\''+fmtDate(dates[i])+'\')">';
-      if(has){
-        html+='<div class="tg-cell-dots">';
-        cell.w.slice(0,4).forEach(function(wid){
-          var w=workers.find(function(x){return x.id===wid;});
-          if(w)html+='<div class="tg-cdot" style="background:'+w.color+'" title="'+escapeHtml(w.name)+'">'+w.initials+'</div>';
-        });
-        if(cell.w.length>4)html+='<div class="tg-cdot" style="background:#888">+'+(cell.w.length-4)+'</div>';
-        html+='</div>'
-          +'<div class="tg-cell-time">'+(cell.s||'')+'–<br>'+(cell.e||'')+'</div>';
-        var names=cell.w.map(function(wid){var w=workers.find(function(x){return x.id===wid;});return w?w.name:'';}).filter(Boolean).slice(0,3).join(', ');
-        if(names)html+='<div class="tg-cell-names">'+escapeHtml(names)+'</div>';
-      }else{
-        html+='<div class="tg-add">＋</div>';
-      }
+      // Find all chantiers this worker is assigned to this day
+      var assignments=chantiers.filter(function(c){
+        var cell=assign[dKey+'_'+c.id];
+        return cell&&cell.w&&cell.w.indexOf(w.id)>=0;
+      });
+      var isEmpty=assignments.length===0;
+      html+='<div class="wg-cell'+(isEmpty?' empty':'')+'">';
+      assignments.forEach(function(c){
+        var cell=assign[dKey+'_'+c.id];
+        html+='<div class="wg-chantier-tag" style="background:'+c.color+'" title="'+escapeHtml(c.name)+' · '+(cell.s||'')+'–'+(cell.e||'')+'">'+escapeHtml(c.name)+'</div>';
+        if(cell&&(cell.s||cell.e)){
+          html+='<div class="wg-time">'+(cell.s||'')+'–'+(cell.e||'')+'</div>';
+        }
+      });
       html+='</div>';
     });
   });
@@ -1090,11 +1289,20 @@ document.addEventListener('click',function(e){
 });
 
 function renderWeekTitle(){
-  var dates=getWeekDates();
-  var monday=dates[0];
-  var sat=dates[5];
-  var wn=getWeekNum(monday);
-  document.getElementById('week-title').innerHTML='Semaine '+wn+' — '+fmtLong(monday)+' au '+fmtLong(sat)+' '+sat.getFullYear();
+  var weeks=getPeriodWeeks();
+  var first=weeks[0][0];
+  var last=weeks[weeks.length-1][5];
+  var title='';
+  if(viewPeriod===1){
+    title='Semaine '+getWeekNum(first)+' — '+fmtLong(first)+' au '+fmtLong(last)+' '+last.getFullYear();
+  }else if(viewPeriod===2){
+    title='Semaines '+getWeekNum(first)+'-'+getWeekNum(last)+' — '+fmtLong(first)+' au '+fmtLong(last)+' '+last.getFullYear();
+  }else if(viewPeriod===4){
+    title=MONTHS[first.getMonth()]+' '+first.getFullYear()+(first.getMonth()!==last.getMonth()?' – '+MONTHS[last.getMonth()]:'');
+  }else{
+    title=MONTHS[first.getMonth()]+' – '+MONTHS[last.getMonth()]+' '+last.getFullYear();
+  }
+  document.getElementById('week-title').innerHTML=title;
   document.getElementById('week-today').style.display=weekOff===0?'none':'inline';
 }
 
@@ -1102,6 +1310,7 @@ function render(){
   renderWeekTitle();
   renderWorkers();
   renderGrid();
+  renderWorkerView();
   // Footer impression
   var pf=document.getElementById('print-footer');
   if(pf){
