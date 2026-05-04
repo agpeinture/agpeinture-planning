@@ -555,12 +555,12 @@ function checkPwd(){
     <div class="modal-handle"></div>
     <h3>📋 Copier le planning</h3>
     <div class="frow">
-      <label>De la semaine</label>
-      <input id="copy-from" type="week" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit">
+      <label>Un jour de la semaine SOURCE</label>
+      <input id="copy-from" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit">
     </div>
     <div class="frow">
-      <label>Vers la semaine</label>
-      <input id="copy-to" type="week" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit">
+      <label>Un jour de la semaine DESTINATION</label>
+      <input id="copy-to" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit">
     </div>
     <div class="frow">
       <label>Ouvriers à inclure</label>
@@ -632,7 +632,16 @@ function checkPwd(){
           window._fbLoading=false;
           fbSetStatus('☁️ Synchronisé','#27ae60');
           if(!fbStarted){fbStarted=true;if(window.initApp)window.initApp();}
-          else if(changed){setTimeout(function(){location.reload();},800);}
+          else if(changed){
+            // Rafraîchissement doux sans rechargement de page
+            try{
+              workers=JSON.parse(localStorage.getItem('agp_workers')||'[]');
+              chantiers=JSON.parse(localStorage.getItem('agp_chantiers')||'[]');
+              assign=JSON.parse(localStorage.getItem('agp_assign')||'{}');
+              if(typeof render==='function')render();
+              fbSetStatus('☁️ Mis à jour','#27ae60');
+            }catch(e){fbSetStatus('☁️ Synchronisé','#27ae60');}
+          }
         }else{
           fbSetStatus('☁️ Prêt','#27ae60');
           if(!fbStarted){fbStarted=true;if(window.initApp)window.initApp();}
@@ -651,7 +660,12 @@ function checkPwd(){
           KEYS.forEach(function(k){if(data[k])localStorage.setItem(k,data[k]);});
           window._fbLoading=false;
           fbSetStatus('✅ Données chargées !','#27ae60');
-          setTimeout(function(){location.reload();},700);
+          try{
+            workers=JSON.parse(localStorage.getItem('agp_workers')||'[]');
+            chantiers=JSON.parse(localStorage.getItem('agp_chantiers')||'[]');
+            assign=JSON.parse(localStorage.getItem('agp_assign')||'{}');
+            if(typeof render==='function')render();
+          }catch(e){}
         }else{fbSetStatus('☁️ Aucune donnée cloud','#f39c12');}
       }).catch(function(e){fbSetStatus('⚠️ '+(e.code||e.message),'#e74c3c');});
     };
@@ -819,11 +833,11 @@ function toggleFilterTermine(){
 }
 function copyPeriod(){
   if(!workers.length&&!chantiers.length){alert('Aucune donnée à copier.');return;}
-  // Pre-fill from/to with current week → next week
+  // Pre-fill with current week Monday → next week Monday (type=date, iOS compatible)
   var cur=getWeekDates()[0];
   var next=addDays(cur,7);
-  document.getElementById('copy-from').value=dateToWeekStr(cur);
-  document.getElementById('copy-to').value=dateToWeekStr(next);
+  document.getElementById('copy-from').value=cur.toISOString().slice(0,10);
+  document.getElementById('copy-to').value=next.toISOString().slice(0,10);
   // Fill workers list
   var wEl=document.getElementById('copy-workers');
   wEl.innerHTML=workers.map(function(w){
@@ -838,10 +852,18 @@ function copyPeriod(){
 function confirmCopyPeriod(){
   var fromStr=document.getElementById('copy-from').value;
   var toStr=document.getElementById('copy-to').value;
-  if(!fromStr||!toStr){alert('Choisis les semaines source et destination.');return;}
-  if(fromStr===toStr){alert('La semaine source et destination sont identiques.');return;}
-  var fromMonday=weekToDate(fromStr);
-  var toMonday=weekToDate(toStr);
+  if(!fromStr||!toStr){alert('Choisis les dates source et destination.');return;}
+  if(fromStr===toStr){alert('La date source et destination sont identiques.');return;}
+  // Trouver le lundi de la semaine sélectionnée
+  function getMondayOf(dateStr){
+    var d=new Date(dateStr+'T12:00:00');
+    var day=d.getDay();
+    var diff=day===0?-6:1-day;
+    d.setDate(d.getDate()+diff);
+    return d;
+  }
+  var fromMonday=getMondayOf(fromStr);
+  var toMonday=getMondayOf(toStr);
   var selectedWids=Array.from(document.querySelectorAll('#copy-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));});
   if(!selectedWids.length&&workers.length){alert('Coche au moins un ouvrier.');return;}
   // Copy 1 week of data (from → to)
