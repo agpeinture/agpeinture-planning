@@ -474,6 +474,23 @@ function checkPwd(){
   </div>
 </div>
 
+<!-- MODAL COPIE PERIODE -->
+<div class="overlay" id="ov-copy">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Copier vers la période suivante<span class="h3-sub" id="copy-sub"></span></h3>
+    <div class="frow">
+      <label>Ouvriers à inclure</label>
+      <div class="workers-list" id="copy-workers"></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">💡 Décoche les ouvriers absents la semaine suivante. Les chantiers sans ouvrier coché ne seront pas copiés.</div>
+    <div class="mbtns">
+      <button class="bcancel" onclick="closeOverlay('copy')">Annuler</button>
+      <button class="bsave" onclick="confirmCopyPeriod()">📋 Copier</button>
+    </div>
+  </div>
+</div>
+
 <div class="print-footer" id="print-footer"></div>
 
 <!-- ============ JSPDF (génération PDF) ============ -->
@@ -666,6 +683,37 @@ function toggleFilterTermine(){
   renderGrid();
 }
 function copyPeriod(){
+  if(!workers.length){alert('Aucun ouvrier enregistré.');return;}
+  // Vérifier qu'il y a des affectations à copier
+  var weeks=getPeriodWeeks();
+  var hasAny=false;
+  weeks.forEach(function(dates){
+    dates.forEach(function(date){
+      var srcKey=date.toISOString().slice(0,10);
+      chantiers.forEach(function(c){
+        var src=assign[srcKey+'_'+c.id];
+        if(src&&src.w&&src.w.length)hasAny=true;
+      });
+    });
+  });
+  if(!hasAny){alert('Aucune affectation à copier sur cette période.');return;}
+  // Remplir la modale
+  var nextStart=addDays(weeks[0][0],viewPeriod*7);
+  var nextEnd=addDays(weeks[weeks.length-1][5],viewPeriod*7);
+  document.getElementById('copy-sub').textContent=' → du '+fmtLong(nextStart)+' au '+fmtLong(nextEnd);
+  var wEl=document.getElementById('copy-workers');
+  wEl.innerHTML=workers.map(function(w){
+    return '<div class="w-pick sel" data-wid="'+w.id+'" onclick="toggleWorkerPick(this)">'
+      +'<div class="w-pick-dot" style="background:'+w.color+'">'+w.initials+'</div>'
+      +'<div class="w-pick-name">'+escapeHtml(w.name)+'</div>'
+      +'<div class="w-pick-check">✓</div>'
+      +'</div>';
+  }).join('');
+  showOverlay('copy');
+}
+function confirmCopyPeriod(){
+  var selectedWids=Array.from(document.querySelectorAll('#copy-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));});
+  if(!selectedWids.length){alert('Coche au moins un ouvrier.');return;}
   var weeks=getPeriodWeeks();
   var count=0;
   weeks.forEach(function(dates){
@@ -676,17 +724,22 @@ function copyPeriod(){
       chantiers.forEach(function(c){
         var src=assign[srcKey+'_'+c.id];
         if(src&&src.w&&src.w.length){
-          assign[dstKey+'_'+c.id]={w:src.w.slice(),s:src.s,e:src.e};
-          count++;
+          // Filtrer uniquement les ouvriers sélectionnés
+          var filteredW=src.w.filter(function(wid){return selectedWids.indexOf(wid)>=0;});
+          if(filteredW.length){
+            assign[dstKey+'_'+c.id]={w:filteredW,s:src.s,e:src.e};
+            count++;
+          }
         }
       });
     });
   });
-  if(count===0){alert('Aucune affectation à copier sur cette période.');}
+  closeOverlay('copy');
+  if(count===0){alert('Aucune affectation copiée (aucun ouvrier sélectionné n\'était affecté).');}
   else{
     save();
-    var msg=count+' affectation'+(count>1?'s':'')+' copiée'+(count>1?'s':'')+' vers la période suivante.';
-    alert(msg);
+    render();
+    alert(count+' affectation'+(count>1?'s':'')+' copiée'+(count>1?'s':'')+' ✓');
   }
 }
 
