@@ -203,6 +203,51 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .wg-wname{font-size:11px}
   .wg-chantier-tag{font-size:9px}
 }
+/* SEARCH BAR */
+.search-bar{background:white;padding:6px 18px 8px;border-bottom:1px solid var(--border)}
+.search-input{width:100%;box-sizing:border-box;padding:9px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#f8fafc}
+.search-input:focus{border-color:var(--brand)}
+/* HOLIDAY cell */
+.tg-hdr-day.holiday{background:#fff3e0}
+.tg-hdr-day.holiday .tg-hdr-day-lbl{color:#e76f00}
+.tg-hdr-day.holiday .tg-hdr-day-date{color:#e76f00;font-weight:700}
+.tg-cell.holiday{background:#fffbf5}
+.tg-hdr-day.holiday::after{content:attr(data-ferie);display:block;font-size:8px;color:#e76f00;font-weight:700;text-align:center}
+/* TODAY TAB */
+.today-date-title{font-size:18px;font-weight:800;color:var(--text);padding:18px 18px 8px;font-family:'Inter',sans-serif}
+.today-no-assign{color:var(--muted);font-size:14px;padding:20px 18px}
+.today-card{background:white;border-radius:14px;border:1px solid var(--border);margin:0 14px 12px;overflow:hidden;border-left:5px solid}
+.today-card-hdr{padding:12px 14px 6px;display:flex;align-items:center;gap:10px}
+.today-card-name{font-size:15px;font-weight:800;color:var(--text);flex:1}
+.today-card-time{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-bg);padding:3px 8px;border-radius:7px}
+.today-card-addr{font-size:12px;color:var(--muted);padding:0 14px 4px;display:flex;align-items:center;gap:6px}
+.today-card-addr a{color:var(--brand);text-decoration:none}
+.today-card-phone{font-size:12px;color:var(--muted);padding:0 14px 4px}
+.today-card-phone a{color:var(--green);font-weight:700;text-decoration:none}
+.today-card-workers{padding:8px 14px 12px;display:flex;flex-wrap:wrap;gap:6px}
+.today-worker-chip{display:flex;align-items:center;gap:5px;background:#f4f6f8;border-radius:20px;padding:4px 10px 4px 4px;font-size:12px;font-weight:600}
+.today-worker-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white}
+/* CHANTIERS TAB */
+.chant-filter-bar{display:flex;gap:6px;padding:12px 14px;flex-wrap:wrap;background:white;border-bottom:1px solid var(--border)}
+.chant-item{background:white;border-radius:14px;border:1px solid var(--border);margin:10px 14px 0;border-left:5px solid;overflow:hidden}
+.chant-item-hdr{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.chant-item-name{flex:1;font-size:14px;font-weight:800;color:var(--text)}
+.chant-item-status{font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px}
+.chant-item-info{padding:0 14px 10px;font-size:12px;color:var(--muted)}
+.chant-item-actions{padding:8px 14px 12px;display:flex;gap:8px}
+.chant-item-actions button{border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-edit-c{background:var(--brand-bg);color:var(--brand)}
+.btn-del-c{background:#fee2e2;color:#c0392b}
+/* TOGGLE SWITCH */
+.frow-inline{flex-direction:row;align-items:center;justify-content:space-between}
+.toggle-wrap{position:relative;display:inline-block;width:44px;height:26px}
+.toggle-wrap input{opacity:0;width:0;height:0}
+.toggle{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:26px;transition:.3s}
+.toggle:before{content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+.toggle-wrap input:checked+.toggle{background:var(--brand)}
+.toggle-wrap input:checked+.toggle:before{transform:translateX(18px)}
+/* CHANTIERS LIST bottom spacing */
+#tab-chantiers-content{padding-bottom:20px}
 /* PERIOD SELECTOR BAR */
 .period-bar{background:white;padding:7px 18px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .period-bar-lbl{font-size:11px;font-weight:700;color:var(--muted);margin-right:2px;white-space:nowrap}
@@ -347,9 +392,11 @@ function checkPwd(){
     </div>
   </div>
   <div class="hdr-tabs">
-    <button class="htab active" id="tab-planning" onclick="switchTab('planning')"><span class="ico">🏗️</span> Planning Équipe</button>
-    <button class="htab" id="tab-workers" onclick="switchTab('workers')"><span class="ico">👷</span> Par Ouvrier</button>
-    <button class="htab" id="tab-agenda" onclick="switchTab('agenda')"><span class="ico">📅</span> Agenda Personnel</button>
+    <button class="htab active" id="tab-planning" onclick="switchTab('planning')"><span class="ico">🏗️</span> Planning</button>
+    <button class="htab" id="tab-workers" onclick="switchTab('workers')"><span class="ico">👷</span> Ouvriers</button>
+    <button class="htab" id="tab-today" onclick="switchTab('today')"><span class="ico">📍</span> Aujourd'hui</button>
+    <button class="htab" id="tab-chantiers" onclick="switchTab('chantiers')"><span class="ico">🏢</span> Chantiers</button>
+    <button class="htab" id="tab-agenda" onclick="switchTab('agenda')"><span class="ico">📅</span> Agenda</button>
   </div>
 </div>
 
@@ -368,8 +415,11 @@ function checkPwd(){
   <button class="pbtn" id="pb-2" onclick="setViewPeriod(2)">2 sem.</button>
   <button class="pbtn" id="pb-4" onclick="setViewPeriod(4)">1 mois</button>
   <button class="pbtn" id="pb-8" onclick="setViewPeriod(8)">2 mois</button>
-  <button class="pbtn-action" onclick="copyPeriod()" title="Copier toutes les affectations vers la période suivante">📋 Copier →</button>
+  <button class="pbtn-action" onclick="copyPeriod()">📋 Copier</button>
   <button class="pbtn-filter" id="btn-filter-termine" onclick="toggleFilterTermine()">✅ Masquer terminés</button>
+</div>
+<div class="search-bar noprint" id="search-bar" style="display:none">
+  <input class="search-input" id="search-input" type="search" placeholder="🔍 Rechercher un chantier..." oninput="onSearch(this.value)">
 </div>
 
 <!-- MAIN -->
@@ -389,6 +439,22 @@ function checkPwd(){
   <!-- VUE PAR OUVRIER TAB -->
   <div id="tab-workers-content" style="display:none">
     <div id="worker-grid-container"></div>
+  </div>
+
+  <!-- AUJOURD'HUI TAB -->
+  <div id="tab-today-content" style="display:none">
+    <div id="today-container"></div>
+  </div>
+
+  <!-- CHANTIERS TAB -->
+  <div id="tab-chantiers-content" style="display:none">
+    <div class="chant-filter-bar">
+      <button class="pbtn active" id="cf-all" onclick="setChantiersFilter('all')">Tous</button>
+      <button class="pbtn" id="cf-encours" onclick="setChantiersFilter('encours')">🔵 En cours</button>
+      <button class="pbtn" id="cf-attente" onclick="setChantiersFilter('attente')">🟡 En attente</button>
+      <button class="pbtn" id="cf-termine" onclick="setChantiersFilter('termine')">✅ Terminés</button>
+    </div>
+    <div id="chantiers-list-container"></div>
   </div>
 
   <!-- AGENDA TAB -->
@@ -424,6 +490,15 @@ function checkPwd(){
     <div class="frow"><label>Nom du chantier</label><input id="c-name" type="text" placeholder="Architectonico, Nyon 1345..."></div>
     <div class="frow"><label>Adresse</label><input id="c-addr" type="text" placeholder="Rue, ville..."></div>
     <div class="frow"><label>Téléphone contact</label><input id="c-phone" type="tel" placeholder="079 000 00 00"></div>
+    <div class="frow frow-inline">
+      <label>Chantier récurrent</label>
+      <label class="toggle-wrap"><input type="checkbox" id="c-recurrent" onchange="toggleRecurrentUI()"><span class="toggle"></span></label>
+    </div>
+    <div class="frow" id="c-recurrent-workers" style="display:none">
+      <label>Ouvriers par défaut</label>
+      <div class="workers-list" id="c-default-workers"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Ces ouvriers seront pré-affectés automatiquement chaque semaine</div>
+    </div>
     <div class="frow"><label>Statut</label>
       <div class="status-row">
         <button data-status="encours" onclick="setStatus(this)">🔵 En cours</button>
@@ -478,12 +553,20 @@ function checkPwd(){
 <div class="overlay" id="ov-copy">
   <div class="modal">
     <div class="modal-handle"></div>
-    <h3>Copier vers la période suivante<span class="h3-sub" id="copy-sub"></span></h3>
+    <h3>📋 Copier le planning</h3>
+    <div class="frow">
+      <label>De la semaine</label>
+      <input id="copy-from" type="week" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit">
+    </div>
+    <div class="frow">
+      <label>Vers la semaine</label>
+      <input id="copy-to" type="week" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit">
+    </div>
     <div class="frow">
       <label>Ouvriers à inclure</label>
       <div class="workers-list" id="copy-workers"></div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">💡 Décoche les ouvriers absents la semaine suivante. Les chantiers sans ouvrier coché ne seront pas copiés.</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">💡 Décoche les ouvriers absents. Les cellules sans ouvrier coché ne seront pas copiées.</div>
     <div class="mbtns">
       <button class="bcancel" onclick="closeOverlay('copy')">Annuler</button>
       <button class="bsave" onclick="confirmCopyPeriod()">📋 Copier</button>
@@ -642,6 +725,8 @@ var assign=JSON.parse(localStorage.getItem('agp_assign')||'{}');
 var weekOff=0;
 var viewPeriod=1;
 var filterTermine=false;
+var searchQuery='';
+var chantiersFilter='all';
 var activeTab='planning';
 var editingWorker=null,editingChantier=null,editingAssign=null;
 var sel={wColor:COLORS[0],cColor:COLORS[0],cStatus:'encours'};
@@ -652,8 +737,58 @@ function save(){
   localStorage.setItem('agp_assign',JSON.stringify(assign));
 }
 
+// === JOURS FERIES VAUD ===
+function getEaster(year){
+  var a=year%19,b=Math.floor(year/100),c=year%100;
+  var d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
+  var g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+  var i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+  var m=Math.floor((a+11*h+22*l)/451);
+  var month=Math.floor((h+l-7*m+114)/31);
+  var day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+function getFeriesVaud(year){
+  var e=getEaster(year);
+  function addD(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+  var feries={};
+  function add(d,lbl){feries[d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())]=lbl;}
+  add(new Date(year,0,1),'Nouvel An');
+  add(addD(e,-2),'Vendredi Saint');
+  add(addD(e,1),'Lundi de Pâques');
+  add(addD(e,39),'Ascension');
+  add(addD(e,50),'Lundi de Pentecôte');
+  add(new Date(year,7,1),'Fête nationale');
+  add(new Date(year,11,25),'Noël');
+  add(new Date(year,11,26),'St-Étienne');
+  return feries;
+}
+function isFerie(dateKey){
+  var year=parseInt(dateKey.slice(0,4));
+  var f=getFeriesVaud(year);
+  return f[dateKey]||null;
+}
+// === SEARCH ===
+function onSearch(v){searchQuery=v.trim().toLowerCase();renderGrid();}
+// === COPY ===
+function weekToDate(wstr){
+  // wstr = "2026-W20"
+  var parts=wstr.split('-W');
+  var year=parseInt(parts[0]),week=parseInt(parts[1]);
+  var jan4=new Date(year,0,4);
+  var monday=getMonday(jan4);
+  monday.setDate(monday.getDate()+(week-1)*7);
+  return monday;
+}
+function dateToWeekStr(d){
+  var wn=getWeekNum(d);
+  var year=d.getFullYear();
+  // Edge: week 1 can be in December
+  if(d.getMonth()===11&&wn===1)year++;
+  if(d.getMonth()===0&&wn>50)year--;
+  return year+'-W'+pad2(wn);
+}
 function getWeekDates(){
-  var monday=getMonday(new Date());
   monday.setDate(monday.getDate()+weekOff*7);
   return DAYS.map(function(_,i){return addDays(monday,i);});
 }
@@ -683,24 +818,13 @@ function toggleFilterTermine(){
   renderGrid();
 }
 function copyPeriod(){
-  if(!workers.length){alert('Aucun ouvrier enregistré.');return;}
-  // Vérifier qu'il y a des affectations à copier
-  var weeks=getPeriodWeeks();
-  var hasAny=false;
-  weeks.forEach(function(dates){
-    dates.forEach(function(date){
-      var srcKey=date.toISOString().slice(0,10);
-      chantiers.forEach(function(c){
-        var src=assign[srcKey+'_'+c.id];
-        if(src&&src.w&&src.w.length)hasAny=true;
-      });
-    });
-  });
-  if(!hasAny){alert('Aucune affectation à copier sur cette période.');return;}
-  // Remplir la modale
-  var nextStart=addDays(weeks[0][0],viewPeriod*7);
-  var nextEnd=addDays(weeks[weeks.length-1][5],viewPeriod*7);
-  document.getElementById('copy-sub').textContent=' → du '+fmtLong(nextStart)+' au '+fmtLong(nextEnd);
+  if(!workers.length&&!chantiers.length){alert('Aucune donnée à copier.');return;}
+  // Pre-fill from/to with current week → next week
+  var cur=getWeekDates()[0];
+  var next=addDays(cur,7);
+  document.getElementById('copy-from').value=dateToWeekStr(cur);
+  document.getElementById('copy-to').value=dateToWeekStr(next);
+  // Fill workers list
   var wEl=document.getElementById('copy-workers');
   wEl.innerHTML=workers.map(function(w){
     return '<div class="w-pick sel" data-wid="'+w.id+'" onclick="toggleWorkerPick(this)">'
@@ -712,47 +836,174 @@ function copyPeriod(){
   showOverlay('copy');
 }
 function confirmCopyPeriod(){
+  var fromStr=document.getElementById('copy-from').value;
+  var toStr=document.getElementById('copy-to').value;
+  if(!fromStr||!toStr){alert('Choisis les semaines source et destination.');return;}
+  if(fromStr===toStr){alert('La semaine source et destination sont identiques.');return;}
+  var fromMonday=weekToDate(fromStr);
+  var toMonday=weekToDate(toStr);
   var selectedWids=Array.from(document.querySelectorAll('#copy-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));});
-  if(!selectedWids.length){alert('Coche au moins un ouvrier.');return;}
-  var weeks=getPeriodWeeks();
+  if(!selectedWids.length&&workers.length){alert('Coche au moins un ouvrier.');return;}
+  // Copy 1 week of data (from → to)
   var count=0;
-  weeks.forEach(function(dates){
-    dates.forEach(function(date){
-      var srcKey=date.toISOString().slice(0,10);
-      var dstDate=addDays(date,viewPeriod*7);
-      var dstKey=dstDate.toISOString().slice(0,10);
-      chantiers.forEach(function(c){
-        var src=assign[srcKey+'_'+c.id];
-        if(src&&src.w&&src.w.length){
-          // Filtrer uniquement les ouvriers sélectionnés
-          var filteredW=src.w.filter(function(wid){return selectedWids.indexOf(wid)>=0;});
-          if(filteredW.length){
-            assign[dstKey+'_'+c.id]={w:filteredW,s:src.s,e:src.e};
-            count++;
-          }
+  for(var i=0;i<6;i++){
+    var srcDate=addDays(fromMonday,i);
+    var dstDate=addDays(toMonday,i);
+    var srcKey=srcDate.toISOString().slice(0,10);
+    var dstKey=dstDate.toISOString().slice(0,10);
+    chantiers.forEach(function(c){
+      var src=assign[srcKey+'_'+c.id];
+      if(src&&src.w&&src.w.length){
+        var filteredW=workers.length?src.w.filter(function(wid){return selectedWids.indexOf(wid)>=0;}):src.w.slice();
+        if(filteredW.length){
+          assign[dstKey+'_'+c.id]={w:filteredW,s:src.s,e:src.e};
+          count++;
         }
-      });
+      }
     });
-  });
-  closeOverlay('copy');
-  if(count===0){alert('Aucune affectation copiée (aucun ouvrier sélectionné n\'était affecté).');}
-  else{
-    save();
-    render();
-    alert(count+' affectation'+(count>1?'s':'')+' copiée'+(count>1?'s':'')+' ✓');
   }
+  closeOverlay('copy');
+  if(count===0){alert('Aucune affectation copiée.');}
+  else{save();render();alert(count+' affectation'+(count>1?'s':'')+' copiée'+(count>1?'s':'')+' ✓');}
 }
 
 function switchTab(t){
   activeTab=t;
-  document.getElementById('tab-planning').classList.toggle('active',t==='planning');
-  document.getElementById('tab-workers').classList.toggle('active',t==='workers');
-  document.getElementById('tab-agenda').classList.toggle('active',t==='agenda');
-  document.getElementById('tab-planning-content').style.display=t==='planning'?'':'none';
-  document.getElementById('tab-workers-content').style.display=t==='workers'?'':'none';
-  document.getElementById('tab-agenda-content').style.display=t==='agenda'?'':'none';
-  document.getElementById('btn-worker').style.display=t==='planning'||t==='workers'?'':'none';
-  document.getElementById('btn-chantier').style.display=t==='planning'?'':'none';
+  ['planning','workers','today','chantiers','agenda'].forEach(function(id){
+    var btn=document.getElementById('tab-'+id);
+    var cnt=document.getElementById('tab-'+id+'-content');
+    if(btn)btn.classList.toggle('active',id===t);
+    if(cnt)cnt.style.display=id===t?'':'none';
+  });
+  // Search bar only on planning
+  var sb=document.getElementById('search-bar');
+  if(sb)sb.style.display=t==='planning'?'':'none';
+  // Period bar + weeknav only on planning/workers
+  var wb=document.querySelector('.weeknav');
+  var pb=document.querySelector('.period-bar');
+  if(wb)wb.style.display=(t==='planning'||t==='workers')?'':'none';
+  if(pb)pb.style.display=(t==='planning'||t==='workers')?'':'none';
+  document.getElementById('btn-worker').style.display=(t==='planning'||t==='workers')?'':'none';
+  document.getElementById('btn-chantier').style.display=(t==='planning'||t==='chantiers')?'':'none';
+  if(t==='today')renderTodayTab();
+  if(t==='chantiers')renderChantiersTab();
+}
+// === TODAY TAB ===
+function renderTodayTab(){
+  var el=document.getElementById('today-container');if(!el)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var dKey=today.toISOString().slice(0,10);
+  var dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  var ferie=isFerie(dKey);
+  var html='<div class="today-date-title">📍 '+dayNames[today.getDay()]+' '+today.getDate()+' '+MONTHS[today.getMonth()]+' '+today.getFullYear()+(ferie?' — 🎉 '+ferie:'')+'</div>';
+  var assigned=chantiers.filter(function(c){
+    var cell=assign[dKey+'_'+c.id];
+    return cell&&cell.w&&cell.w.length>0;
+  });
+  if(!assigned.length){
+    html+='<div class="today-no-assign">'+(ferie?'🎉 Jour férié — bon repos !':'Aucune affectation aujourd\'hui.')+'</div>';
+  }else{
+    assigned.forEach(function(c){
+      var cell=assign[dKey+'_'+c.id];
+      html+='<div class="today-card" style="border-left-color:'+c.color+'">'
+        +'<div class="today-card-hdr">'
+        +'<div class="today-card-name">'+escapeHtml(c.name)+'</div>'
+        +(cell.s?'<div class="today-card-time">'+cell.s+'–'+(cell.e||'?')+'</div>':'')
+        +'</div>'
+        +(c.address?'<div class="today-card-addr">📍 <a href="https://maps.apple.com/?q='+encodeURIComponent(c.address)+'" target="_blank">'+escapeHtml(c.address)+'</a></div>':'')
+        +(c.phone?'<div class="today-card-phone">📞 <a href="tel:'+escapeHtml(c.phone)+'">'+escapeHtml(c.phone)+'</a></div>':'')
+        +(c.notes?'<div class="today-card-addr">📝 '+escapeHtml(c.notes)+'</div>':'')
+        +'<div class="today-card-workers">';
+      cell.w.forEach(function(wid){
+        var w=workers.find(function(x){return x.id===wid;});
+        if(w)html+='<div class="today-worker-chip"><div class="today-worker-dot" style="background:'+w.color+'">'+w.initials+'</div>'+escapeHtml(w.name)+'</div>';
+      });
+      html+='</div></div>';
+    });
+  }
+  el.innerHTML=html;
+}
+// === CHANTIERS TAB ===
+function setChantiersFilter(f){
+  chantiersFilter=f;
+  ['all','encours','attente','termine'].forEach(function(x){
+    var el=document.getElementById('cf-'+x);if(el)el.classList.toggle('active',x===f);
+  });
+  renderChantiersTab();
+}
+function renderChantiersTab(){
+  var el=document.getElementById('chantiers-list-container');if(!el)return;
+  var stLbl={encours:'🔵 En cours',attente:'🟡 En attente',termine:'✅ Terminé'};
+  var stBg={encours:'#e3f2fd',attente:'#fff9e6',termine:'#e8f8ee'};
+  var stTx={encours:'#1565c0',attente:'#b7791f',termine:'#2d6a4f'};
+  var filtered=chantiers.filter(function(c){return chantiersFilter==='all'||c.status===chantiersFilter;});
+  if(!filtered.length){
+    el.innerHTML='<div class="today-no-assign">Aucun chantier dans cette catégorie.</div>';return;
+  }
+  var html='';
+  filtered.forEach(function(c){
+    html+='<div class="chant-item" style="border-left-color:'+c.color+'">'
+      +'<div class="chant-item-hdr">'
+      +'<div class="chant-item-name">'+escapeHtml(c.name)+'</div>'
+      +'<span class="chant-item-status" style="background:'+(stBg[c.status]||'#eee')+';color:'+(stTx[c.status]||'#333')+'">'+(stLbl[c.status]||'?')+'</span>'
+      +'</div>'
+      +'<div class="chant-item-info">'
+      +(c.address?'📍 '+escapeHtml(c.address)+'<br>':'')
+      +(c.phone?'📞 '+escapeHtml(c.phone)+'<br>':'')
+      +(c.notes?'📝 '+escapeHtml(c.notes):'')
+      +(c.recurrent?'<span style="color:var(--brand);font-weight:700">🔄 Récurrent</span>':'')
+      +'</div>'
+      +'<div class="chant-item-actions">'
+      +'<button class="btn-edit-c" onclick="openChantierModal('+c.id+');switchTab(\'planning\')">✎ Modifier</button>'
+      +'<button class="btn-del-c" onclick="deleteChantierFromList('+c.id+')">🗑 Supprimer</button>'
+      +'</div>'
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+function deleteChantierFromList(id){
+  var c=chantiers.find(function(x){return x.id===id;});
+  if(!c)return;
+  if(!confirm('Supprimer "'+c.name+'" ? Cette action est irréversible.'))return;
+  chantiers=chantiers.filter(function(x){return x.id!==id;});
+  // Nettoyer les affectations liées
+  Object.keys(assign).forEach(function(k){if(k.endsWith('_'+id))delete assign[k];});
+  save();renderChantiersTab();
+}
+// === RECURRING CHANTIERS ===
+function toggleRecurrentUI(){
+  var checked=document.getElementById('c-recurrent').checked;
+  document.getElementById('c-recurrent-workers').style.display=checked?'':'none';
+  if(checked&&!document.getElementById('c-default-workers').children.length){
+    buildWorkerPickList('c-default-workers',[]);
+  }
+}
+function buildWorkerPickList(containerId,selectedIds){
+  var el=document.getElementById(containerId);if(!el)return;
+  el.innerHTML=workers.map(function(w){
+    var sel=selectedIds.indexOf(w.id)>=0;
+    return '<div class="w-pick'+(sel?' sel':'')+'" data-wid="'+w.id+'" onclick="toggleWorkerPick(this)">'
+      +'<div class="w-pick-dot" style="background:'+w.color+'">'+w.initials+'</div>'
+      +'<div class="w-pick-name">'+escapeHtml(w.name)+'</div>'
+      +'<div class="w-pick-check">✓</div>'
+      +'</div>';
+  }).join('');
+}
+function applyRecurringAssignments(){
+  // Apply default workers to all 6 days of current period for recurring chantiers
+  var weeks=getPeriodWeeks();
+  chantiers.forEach(function(c){
+    if(!c.recurrent||!c.defaultWorkers||!c.defaultWorkers.length)return;
+    weeks.forEach(function(dates){
+      dates.forEach(function(date){
+        var dKey=date.toISOString().slice(0,10);
+        var key=dKey+'_'+c.id;
+        if(!assign[key]||!assign[key].w||!assign[key].w.length){
+          assign[key]={w:c.defaultWorkers.slice(),s:'07:30',e:'17:00'};
+        }
+      });
+    });
+  });
 }
 
 // Génération PDF native avec jsPDF (compatible iPad/iPhone/Mac)
@@ -1046,6 +1297,10 @@ function openChantierModal(id){
   document.getElementById('c-addr').value=c?(c.address||''):'';
   document.getElementById('c-phone').value=c?(c.phone||''):'';
   document.getElementById('c-notes').value=c?(c.notes||''):'';
+  var recurrent=c?!!c.recurrent:false;
+  document.getElementById('c-recurrent').checked=recurrent;
+  document.getElementById('c-recurrent-workers').style.display=recurrent?'':'none';
+  buildWorkerPickList('c-default-workers',c&&c.defaultWorkers?c.defaultWorkers:[]);
   sel.cColor=c?c.color:COLORS[(chantiers.length+3)%COLORS.length];
   sel.cStatus=c?(c.status||'encours'):'encours';
   document.getElementById('c-del-btn').style.display=c?'':'none';
@@ -1062,7 +1317,9 @@ function setStatusUI(){
 function saveChantier(){
   var name=document.getElementById('c-name').value.trim();
   if(!name){alert('Saisis le nom du chantier');return;}
-  var data={name:name,address:document.getElementById('c-addr').value.trim(),phone:document.getElementById('c-phone').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus};
+  var recurrent=document.getElementById('c-recurrent').checked;
+  var defaultWorkers=recurrent?Array.from(document.querySelectorAll('#c-default-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));}):[];
+  var data={name:name,address:document.getElementById('c-addr').value.trim(),phone:document.getElementById('c-phone').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus,recurrent:recurrent,defaultWorkers:defaultWorkers};
   if(editingChantier){
     var c=chantiers.find(function(x){return x.id===editingChantier;});
     if(c)Object.assign(c,data);
@@ -1180,10 +1437,17 @@ function clearAssign(){
 
 // === GRID RENDER ===
 function renderGrid(){
+  applyRecurringAssignments();
   var el=document.getElementById('grid-container');
   var allChantiers=filterTermine?chantiers.filter(function(c){return c.status!=='termine';}):chantiers;
+  // Apply search filter
+  if(searchQuery){
+    allChantiers=allChantiers.filter(function(c){
+      return c.name.toLowerCase().indexOf(searchQuery)>=0||(c.address||'').toLowerCase().indexOf(searchQuery)>=0;
+    });
+  }
   if(!allChantiers.length){
-    el.innerHTML='<div class="empty-msg"><div class="ei">🏗️</div><p>'+(chantiers.length?'Tous les chantiers sont masqués':'Aucun chantier')+'</p><span style="font-size:13px;font-weight:500">'+(chantiers.length?'Désactive le filtre pour les afficher':'Tape sur "+ Chantier" en haut pour commencer')+'</span></div>';
+    el.innerHTML='<div class="empty-msg"><div class="ei">🏗️</div><p>'+(chantiers.length?'Aucun résultat':'Aucun chantier')+'</p><span style="font-size:13px;font-weight:500">'+(searchQuery?'Essaie un autre terme de recherche':chantiers.length?'Désactive le filtre pour les afficher':'Tape sur "+ Chantier" en haut pour commencer')+'</span></div>';
     return;
   }
   var weeks=getPeriodWeeks();
@@ -1217,8 +1481,10 @@ function renderGrid(){
   }
   weeks.forEach(function(dates){
     DAYS.forEach(function(d,i){
-      html+='<div class="tg-hdr-day'+(compact?' compact':'')+'">'
-        +'<div class="tg-hdr-day-lbl">'+d+'</div>'
+      var dKey=dates[i].toISOString().slice(0,10);
+      var ferie=isFerie(dKey);
+      html+='<div class="tg-hdr-day'+(compact?' compact':'')+(ferie?' holiday':'')+'"'+(ferie?' data-ferie="'+ferie+'"':'')+'>'+
+        '<div class="tg-hdr-day-lbl">'+d+'</div>'
         +'<div class="tg-hdr-day-date">'+fmtDate(dates[i])+'</div>'
         +'</div>';
     });
@@ -1247,7 +1513,8 @@ function renderGrid(){
         var dKey=dates[i].toISOString().slice(0,10);
         var cell=assign[dKey+'_'+c.id]||{w:[]};
         var has=cell.w&&cell.w.length>0;
-        html+='<div class="tg-cell'+(has?'':' empty')+(compact?' compact':'')+'" onclick="openAssignModal('+c.id+',\''+dKey+'\',\''+d+'\',\''+fmtDate(dates[i])+'\')">';
+        var ferie=isFerie(dKey);
+        html+='<div class="tg-cell'+(has?'':' empty')+(compact?' compact':'')+(ferie?' holiday':'')+'" onclick="openAssignModal('+c.id+',\''+dKey+'\',\''+d+'\',\''+fmtDate(dates[i])+'\')">';
         if(has){
           html+='<div class="tg-cell-dots">';
           cell.w.slice(0,compact?3:4).forEach(function(wid){
@@ -1364,6 +1631,9 @@ function render(){
   renderWorkers();
   renderGrid();
   renderWorkerView();
+  // Afficher la barre de recherche seulement sur planning
+  var sb=document.getElementById('search-bar');
+  if(sb)sb.style.display=activeTab==='planning'?'':'none';
   // Footer impression
   var pf=document.getElementById('print-footer');
   if(pf){
