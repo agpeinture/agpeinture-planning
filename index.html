@@ -768,23 +768,6 @@ function isFerie(dateKey){
 // === SEARCH ===
 function onSearch(v){searchQuery=v.trim().toLowerCase();renderGrid();}
 // === COPY ===
-function weekToDate(wstr){
-  // wstr = "2026-W20"
-  var parts=wstr.split('-W');
-  var year=parseInt(parts[0]),week=parseInt(parts[1]);
-  var jan4=new Date(year,0,4);
-  var monday=getMonday(jan4);
-  monday.setDate(monday.getDate()+(week-1)*7);
-  return monday;
-}
-function dateToWeekStr(d){
-  var wn=getWeekNum(d);
-  var year=d.getFullYear();
-  // Edge: week 1 can be in December
-  if(d.getMonth()===11&&wn===1)year++;
-  if(d.getMonth()===0&&wn>50)year--;
-  return year+'-W'+pad2(wn);
-}
 function getWeekDates(){
   var monday=getMonday(new Date());
   monday.setDate(monday.getDate()+weekOff*7);
@@ -815,64 +798,6 @@ function toggleFilterTermine(){
   if(btn)btn.classList.toggle('active',filterTermine);
   renderGrid();
 }
-function copyPeriod(){
-  if(!workers.length&&!chantiers.length){alert('Aucune donnée à copier.');return;}
-  // Pre-fill with current week Monday → next week Monday (type=date, iOS compatible)
-  var cur=getWeekDates()[0];
-  var next=addDays(cur,7);
-  document.getElementById('copy-from').value=cur.toISOString().slice(0,10);
-  document.getElementById('copy-to').value=next.toISOString().slice(0,10);
-  // Fill workers list
-  var wEl=document.getElementById('copy-workers');
-  wEl.innerHTML=workers.map(function(w){
-    return '<div class="w-pick sel" data-wid="'+w.id+'" onclick="toggleWorkerPick(this)">'
-      +'<div class="w-pick-dot" style="background:'+w.color+'">'+w.initials+'</div>'
-      +'<div class="w-pick-name">'+escapeHtml(w.name)+'</div>'
-      +'<div class="w-pick-check">✓</div>'
-      +'</div>';
-  }).join('');
-  showOverlay('copy');
-}
-function confirmCopyPeriod(){
-  var fromStr=document.getElementById('copy-from').value;
-  var toStr=document.getElementById('copy-to').value;
-  if(!fromStr||!toStr){alert('Choisis les dates source et destination.');return;}
-  if(fromStr===toStr){alert('La date source et destination sont identiques.');return;}
-  // Trouver le lundi de la semaine sélectionnée
-  function getMondayOf(dateStr){
-    var d=new Date(dateStr+'T12:00:00');
-    var day=d.getDay();
-    var diff=day===0?-6:1-day;
-    d.setDate(d.getDate()+diff);
-    return d;
-  }
-  var fromMonday=getMondayOf(fromStr);
-  var toMonday=getMondayOf(toStr);
-  var selectedWids=Array.from(document.querySelectorAll('#copy-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));});
-  if(!selectedWids.length&&workers.length){alert('Coche au moins un ouvrier.');return;}
-  // Copy 1 week of data (from → to)
-  var count=0;
-  for(var i=0;i<6;i++){
-    var srcDate=addDays(fromMonday,i);
-    var dstDate=addDays(toMonday,i);
-    var srcKey=srcDate.toISOString().slice(0,10);
-    var dstKey=dstDate.toISOString().slice(0,10);
-    chantiers.forEach(function(c){
-      var src=assign[srcKey+'_'+c.id];
-      if(src&&src.w&&src.w.length){
-        var filteredW=workers.length?src.w.filter(function(wid){return selectedWids.indexOf(wid)>=0;}):src.w.slice();
-        if(filteredW.length){
-          assign[dstKey+'_'+c.id]={w:filteredW,s:src.s,e:src.e};
-          count++;
-        }
-      }
-    });
-  }
-  closeOverlay('copy');
-  if(count===0){alert('Aucune affectation copiée.');}
-  else{save();render();alert(count+' affectation'+(count>1?'s':'')+' copiée'+(count>1?'s':'')+' ✓');}
-}
-
 function switchTab(t){
   activeTab=t;
   ['planning','workers','today','chantiers','agenda'].forEach(function(id){
