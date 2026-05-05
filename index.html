@@ -505,8 +505,8 @@ function checkPwd(){
       <label>Chantier récurrent</label>
       <label class="toggle-wrap"><input type="checkbox" id="c-recurrent" onchange="toggleRecurrentUI()"><span class="toggle"></span></label>
     </div>
-    <div class="frow" id="c-recurrent-workers" style="display:none">
-      <label>Ouvriers par défaut</label>
+    <div class="frow" id="c-recurrent-workers">
+      <label>Ouvriers pour ce chantier</label>
       <div class="workers-list" id="c-default-workers"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Ces ouvriers seront pré-affectés automatiquement chaque semaine</div>
     </div>
@@ -834,7 +834,7 @@ function switchTab(t){
 function renderTodayTab(){
   var el=document.getElementById('today-container');if(!el)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var dKey=today.toISOString().slice(0,10);
+  var dKey=dKeyOf(today);
   var dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   var ferie=isFerie(dKey);
   var html='<div class="today-date-title">📍 '+dayNames[today.getDay()]+' '+today.getDate()+' '+MONTHS[today.getMonth()]+' '+today.getFullYear()+(ferie?' — 🎉 '+ferie:'')+'</div>';
@@ -917,13 +917,13 @@ function doCopyChantierFromModal(){
   }
   var fromMonday=getWeekDates()[0];
   var toMonday=getMondayOf(toStr);
-  if(fromMonday.toISOString().slice(0,10)===toMonday.toISOString().slice(0,10)){
+  if(dKeyOf(fromMonday)===dKeyOf(toMonday)){
     alert('Destination identique à la semaine affichée.');return;
   }
   var count=0;
   for(var i=0;i<6;i++){
-    var srcKey=addDays(fromMonday,i).toISOString().slice(0,10);
-    var dstKey=addDays(toMonday,i).toISOString().slice(0,10);
+    var srcKey=dKeyOf(addDays(fromMonday,i));
+    var dstKey=dKeyOf(addDays(toMonday,i));
     var src=assign[srcKey+'_'+cid];
     if(src&&src.w&&src.w.length){
       assign[dstKey+'_'+cid]={w:src.w.slice(),s:src.s,e:src.e};
@@ -969,7 +969,7 @@ function applyRecurringAssignments(){
     if(!c.recurrent||!c.defaultWorkers||!c.defaultWorkers.length)return;
     weeks.forEach(function(dates){
       dates.forEach(function(date){
-        var dKey=date.toISOString().slice(0,10);
+        var dKey=dKeyOf(date);
         var key=dKey+'_'+c.id;
         if(!assign[key]||!assign[key].w||!assign[key].w.length){
           assign[key]={w:c.defaultWorkers.slice(),s:'07:30',e:'17:00'};
@@ -1135,7 +1135,7 @@ function generatePDF(logoDataUri){
 
         // Cellules jours
         DAYS.forEach(function(d2,i){
-          var dKey=dates[i].toISOString().slice(0,10);
+          var dKey=dKeyOf(dates[i]);
           var cell=assign[dKey+'_'+c.id]||{w:[]};
           var cx=mg+colC+colDay*i;
           // Bordure
@@ -1237,7 +1237,7 @@ function countWorkerDays(wid){
   var dates=getWeekDates();
   var n=0;
   DAYS.forEach(function(_,i){
-    var dKey=dates[i].toISOString().slice(0,10);
+    var dKey=dKeyOf(dates[i]);
     chantiers.forEach(function(c){
       var cell=assign[dKey+'_'+c.id];
       if(cell&&cell.w&&cell.w.indexOf(wid)>=0)n++;
@@ -1320,6 +1320,10 @@ function openAssignModal(chantierId,dateKey,dayLbl,dateLbl){
   var c=chantiers.find(function(x){return x.id===chantierId;});
   var key=dateKey+'_'+chantierId;
   var cell=assign[key]||{w:[],s:'07:30',e:'17:00'};
+  // Pré-remplir avec les ouvriers du chantier si cellule vide
+  if(!assign[key]&&c&&c.defaultWorkers&&c.defaultWorkers.length){
+    cell={w:c.defaultWorkers.slice(),s:'07:30',e:'17:00'};
+  }
   document.getElementById('assign-sub').textContent=(c?c.name+' · ':'')+dayLbl+' '+dateLbl;
   document.getElementById('a-start').value=cell.s||'07:30';
   document.getElementById('a-end').value=cell.e||'17:00';
@@ -1338,7 +1342,7 @@ function openAssignModal(chantierId,dateKey,dayLbl,dateLbl){
   var dates=getWeekDates();
   var daysApplyEl=document.getElementById('a-days-apply');
   daysApplyEl.innerHTML=DAYS.map(function(d,i){
-    var dKey=dates[i].toISOString().slice(0,10);
+    var dKey=dKeyOf(dates[i]);
     var isCurrent=dKey===dateKey;
     return '<div class="day-pick'+(isCurrent?' current':'')+'" data-day="'+dKey+'" '+
       (isCurrent?'':'onclick="toggleDayPick(this)"')+'>'+
@@ -1458,7 +1462,7 @@ function renderGrid(){
   }
   weeks.forEach(function(dates){
     DAYS.forEach(function(d,i){
-      var dKey=dates[i].toISOString().slice(0,10);
+      var dKey=dKeyOf(dates[i]);
       var ferie=isFerie(dKey);
       html+='<div class="tg-hdr-day'+(compact?' compact':'')+(ferie?' holiday':'')+'"'+(ferie?' data-ferie="'+ferie+'"':'')+'>'+
         '<div class="tg-hdr-day-lbl">'+d+'</div>'
@@ -1472,7 +1476,7 @@ function renderGrid(){
     var allDates=[];
     weeks.forEach(function(dates){dates.forEach(function(d){allDates.push(d);});});
     var hasCoverage=allDates.some(function(date){
-      var dKey=date.toISOString().slice(0,10);
+      var dKey=dKeyOf(date);
       var cell=assign[dKey+'_'+c.id];
       return cell&&cell.w&&cell.w.length>0;
     });
@@ -1487,7 +1491,7 @@ function renderGrid(){
       +'</div>';
     weeks.forEach(function(dates){
       DAYS.forEach(function(d,i){
-        var dKey=dates[i].toISOString().slice(0,10);
+        var dKey=dKeyOf(dates[i]);
         var cell=assign[dKey+'_'+c.id]||{w:[]};
         var has=cell.w&&cell.w.length>0;
         var ferie=isFerie(dKey);
@@ -1548,7 +1552,7 @@ function renderWorkerView(){
       +(n>0?'<div class="wg-wdays">'+n+' jour'+(n>1?'s':'')+'</div>':'<div class="wg-wdays" style="color:var(--muted)">Libre</div>')
       +'</div></div>';
     DAYS.forEach(function(d,i){
-      var dKey=dates[i].toISOString().slice(0,10);
+      var dKey=dKeyOf(dates[i]);
       // Find all chantiers this worker is assigned to this day
       var assignments=chantiers.filter(function(c){
         var cell=assign[dKey+'_'+c.id];
