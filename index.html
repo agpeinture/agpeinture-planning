@@ -894,8 +894,9 @@ function renderChantiersTab(){
   el.innerHTML=html;
 }
 function doCopyChantierFromModal(){
-  var toStr=document.getElementById('c-copy-to').value;
-  if(!toStr){alert('Choisis une date destination.');return;}
+  var el=document.getElementById('c-copy-to');
+  var toStr=el?el.value:'';
+  if(!toStr){return;}
   var cid=editingChantier;
   if(!cid){alert('Enregistre le chantier d\'abord.');return;}
   function getMondayOf(dateStr){
@@ -919,7 +920,7 @@ function doCopyChantierFromModal(){
       count++;
     }
   }
-  document.getElementById('c-copy-to').value='';
+  var copyEl=document.getElementById('c-copy-to');if(copyEl)copyEl.value='';
   if(count===0){alert('Aucune affectation à copier sur ce chantier.');}
   else{save();render();alert(count+' jour'+(count>1?'s':'')+' copié'+(count>1?'s':'')+' ✓');}
 }
@@ -1265,8 +1266,6 @@ function openChantierModal(id){
   buildWorkerPickList('c-default-workers',c&&c.defaultWorkers?c.defaultWorkers:[]);
   sel.cColor=c?c.color:COLORS[(chantiers.length+3)%COLORS.length];
   sel.cStatus=c?(c.status||'encours'):'encours';
-  document.getElementById('c-copy-section').style.display=c?'':'none';
-  document.getElementById('c-copy-to').value='';
   document.getElementById('c-date-debut').value=c?(c.dateDebut||''):'';
   document.getElementById('c-date-fin').value=c?(c.dateFin||''):'';;
   document.getElementById('c-del-btn').style.display=c?'':'none';
