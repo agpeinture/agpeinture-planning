@@ -99,7 +99,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .wchip-add{background:white;color:var(--brand);border:1.5px dashed var(--brand);font-weight:700;padding:7px 14px}
 
 /* TABLE GRID — épuré, plus d'air */
-.tgrid-wrap{background:white;border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px}
+.tgrid-wrap{background:white;border-radius:14px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border:1px solid var(--border);margin-bottom:16px}
 .tgrid{display:grid;grid-template-columns:170px repeat(6,minmax(80px,1fr));min-width:100%}
 .tg-hdr{background:var(--bg);padding:14px 14px;display:flex;align-items:center;border-bottom:1px solid var(--border)}
 .tg-hdr-lbl{font-family:'Inter',sans-serif;color:var(--muted);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700}
@@ -316,7 +316,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .wnav-btn{padding:8px 10px;font-size:11px}
   .wnav-title{font-size:12px}
   .main{padding:14px 10px}
-  .tgrid{grid-template-columns:130px repeat(6,minmax(64px,1fr))}
+  .tgrid{grid-template-columns:130px repeat(6,minmax(72px,1fr));min-width:562px}
   .tg-c-info{padding:10px 8px}
   .tg-c-name{font-size:12px}
   .tg-c-addr{font-size:10px}
