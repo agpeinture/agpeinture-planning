@@ -211,6 +211,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .tg-hdr-day.holiday .tg-hdr-day-lbl{color:#e76f00}
 .tg-hdr-day.holiday .tg-hdr-day-date{color:#e76f00;font-weight:700}
 .tg-cell.holiday{background:#fffbf5}
+.tg-cell.in-range{background:color-mix(in srgb,var(--brand) 8%,white)}
+.tg-cell.in-range:active{background:var(--brand-soft)}
 .tg-hdr-day.holiday::after{content:attr(data-ferie);display:block;font-size:8px;color:#e76f00;font-weight:700;text-align:center}
 /* TODAY TAB */
 .today-date-title{font-size:18px;font-weight:800;color:var(--text);padding:18px 18px 8px;font-family:'Inter',sans-serif}
@@ -506,15 +508,11 @@ function checkPwd(){
       </div>
     </div>
     <div class="frow"><label>Couleur</label><div class="color-row" id="c-colors"></div></div>
-    <div class="frow"><label>Notes</label><textarea id="c-notes" placeholder="Précisions techniques, RAL, ordre des étapes..."></textarea></div>
-    <div class="frow" id="c-copy-section" style="display:none">
-      <label>📋 Copier ce chantier vers</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="c-copy-to" type="date" style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit">
-        <button type="button" onclick="doCopyChantierFromModal()" style="background:var(--brand);color:white;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">📋 Copier</button>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4">Les 6 jours de la semaine affichée seront copiés vers la semaine choisie.</div>
-    </div>
+    <div class="frow frow-inline" style="gap:10px">
+<div style="flex:1"><label>Date début</label><input id="c-date-debut" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;box-sizing:border-box"></div>
+<div style="flex:1"><label>Date fin</label><input id="c-date-fin" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;box-sizing:border-box"></div>
+</div>
+<div class="frow"><label>Notes</label><textarea id="c-notes" placeholder="Précisions techniques, RAL, ordre des étapes..."></textarea></div>
     <div class="mbtns">
       <button class="bcancel" onclick="closeOverlay('chantier')">Annuler</button>
       <button class="bdel" id="c-del-btn" style="display:none" onclick="deleteChantier()">Supprimer</button>
@@ -1269,6 +1267,8 @@ function openChantierModal(id){
   sel.cStatus=c?(c.status||'encours'):'encours';
   document.getElementById('c-copy-section').style.display=c?'':'none';
   document.getElementById('c-copy-to').value='';
+  document.getElementById('c-date-debut').value=c?(c.dateDebut||''):'';
+  document.getElementById('c-date-fin').value=c?(c.dateFin||''):'';;
   document.getElementById('c-del-btn').style.display=c?'':'none';
   buildColorPicker('c-colors','cColor');
   setStatusUI();
@@ -1285,7 +1285,9 @@ function saveChantier(){
   if(!name){alert('Saisis le nom du chantier');return;}
   var recurrent=document.getElementById('c-recurrent').checked;
   var defaultWorkers=recurrent?Array.from(document.querySelectorAll('#c-default-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));}):[];
-  var data={name:name,address:document.getElementById('c-addr').value.trim(),phone:document.getElementById('c-phone').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus,recurrent:recurrent,defaultWorkers:defaultWorkers};
+  var dateDebut=document.getElementById('c-date-debut').value;
+  var dateFin=document.getElementById('c-date-fin').value;
+  var data={name:name,address:document.getElementById('c-addr').value.trim(),phone:document.getElementById('c-phone').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus,recurrent:recurrent,defaultWorkers:defaultWorkers,dateDebut:dateDebut,dateFin:dateFin};
   if(editingChantier){
     var c=chantiers.find(function(x){return x.id===editingChantier;});
     if(c)Object.assign(c,data);
@@ -1480,7 +1482,9 @@ function renderGrid(){
         var cell=assign[dKey+'_'+c.id]||{w:[]};
         var has=cell.w&&cell.w.length>0;
         var ferie=isFerie(dKey);
-        html+='<div class="tg-cell'+(has?'':' empty')+(compact?' compact':'')+(ferie?' holiday':'')+'" onclick="openAssignModal('+c.id+',\''+dKey+'\',\''+d+'\',\''+fmtDate(dates[i])+'\')">';
+        var inRange=c.dateDebut&&c.dateFin&&dKey>=c.dateDebut&&dKey<=c.dateFin;
+        var cellClass='tg-cell'+(has?' has-assign':(!inRange?' empty':' in-range'))+(compact?' compact':'')+(ferie?' holiday':'');
+        html+='<div class="'+cellClass+'" onclick="openAssignModal('+c.id+',\''+dKey+'\',\''+d+'\',\''+fmtDate(dates[i])+'\')">';
         if(has){
           html+='<div class="tg-cell-dots">';
           cell.w.slice(0,compact?3:4).forEach(function(wid){
