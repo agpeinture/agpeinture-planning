@@ -501,14 +501,18 @@ function checkPwd(){
     <div class="frow"><label>Nom du chantier</label><input id="c-name" type="text" placeholder="Architectonico, Nyon 1345..."></div>
     <div class="frow"><label>Adresse</label><input id="c-addr" type="text" placeholder="Rue, ville..."></div>
     <div class="frow"><label>Téléphone contact</label><input id="c-phone" type="tel" placeholder="079 000 00 00"></div>
-    <div class="frow frow-inline">
-      <label>Chantier récurrent</label>
-      <label class="toggle-wrap"><input type="checkbox" id="c-recurrent" onchange="toggleRecurrentUI()"><span class="toggle"></span></label>
+    <div class="frow frow-inline" style="gap:10px">
+      <div style="flex:1"><label>Date début</label><input id="c-date-debut" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;box-sizing:border-box"></div>
+      <div style="flex:1"><label>Date fin</label><input id="c-date-fin" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;box-sizing:border-box"></div>
     </div>
-    <div class="frow" id="c-recurrent-workers">
-      <label>Ouvriers pour ce chantier</label>
+    <div class="frow">
+      <label>Ouvriers du chantier</label>
       <div class="workers-list" id="c-default-workers"></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">Ces ouvriers seront pré-affectés automatiquement chaque semaine</div>
+      <div id="c-workers-hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4">💡 Sélectionne les ouvriers — ils seront pré-affectés Lun→Ven sur toute la période entre Date début et Date fin.</div>
+    </div>
+    <div class="frow frow-inline">
+      <label>Chantier récurrent (toute l'année)</label>
+      <label class="toggle-wrap"><input type="checkbox" id="c-recurrent" onchange="toggleRecurrentUI()"><span class="toggle"></span></label>
     </div>
     <div class="frow"><label>Statut</label>
       <div class="status-row">
@@ -518,11 +522,7 @@ function checkPwd(){
       </div>
     </div>
     <div class="frow"><label>Couleur</label><div class="color-row" id="c-colors"></div></div>
-    <div class="frow frow-inline" style="gap:10px">
-<div style="flex:1"><label>Date début</label><input id="c-date-debut" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;box-sizing:border-box"></div>
-<div style="flex:1"><label>Date fin</label><input id="c-date-fin" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;box-sizing:border-box"></div>
-</div>
-<div class="frow"><label>Notes</label><textarea id="c-notes" placeholder="Précisions techniques, RAL, ordre des étapes..."></textarea></div>
+    <div class="frow"><label>Notes</label><textarea id="c-notes" placeholder="Précisions techniques, RAL, ordre des étapes..."></textarea></div>
     <div class="mbtns">
       <button class="bcancel" onclick="closeOverlay('chantier')">Annuler</button>
       <button class="bdel" id="c-del-btn" style="display:none" onclick="deleteChantier()">Supprimer</button>
@@ -555,6 +555,14 @@ function checkPwd(){
       <label>Appliquer aussi sur (optionnel)</label>
       <div class="days-apply" id="a-days-apply"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4">💡 Coche les jours pour copier la même affectation. Pratique pour un chantier sur plusieurs jours.</div>
+    </div>
+    <div class="frow" style="background:var(--brand-bg);border-radius:10px;padding:10px 12px">
+      <label>📅 Ou appliquer sur une plage Du / Au</label>
+      <div class="frow-inline" style="gap:8px;display:flex">
+        <input id="a-range-debut" type="date" style="flex:1;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
+        <input id="a-range-fin" type="date" style="flex:1;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4">💡 Si tu remplis ces 2 dates, en cliquant Enregistrer les ouvriers seront affectés <b>Lun→Ven</b> sur toute cette plage, en plus du jour ci-dessus.</div>
     </div>
     <div class="mbtns">
       <button class="bcancel" onclick="closeOverlay('assign')">Annuler</button>
@@ -947,8 +955,15 @@ function deleteChantierFromList(id){
 // === RECURRING CHANTIERS ===
 function toggleRecurrentUI(){
   var checked=document.getElementById('c-recurrent').checked;
-  document.getElementById('c-recurrent-workers').style.display=checked?'':'none';
-  if(checked&&!document.getElementById('c-default-workers').children.length){
+  // La liste d'ouvriers reste toujours visible. On adapte juste le message d'aide.
+  var hint=document.getElementById('c-workers-hint');
+  if(hint){
+    hint.innerHTML=checked
+      ? '🔁 <b>Récurrent activé</b> — ces ouvriers seront ajoutés automatiquement chaque semaine, sur Lun→Sam, en plus de la plage de dates.'
+      : '💡 Sélectionne les ouvriers — ils seront pré-affectés Lun→Ven sur toute la période entre Date début et Date fin.';
+  }
+  // S'assure que la liste est construite
+  if(!document.getElementById('c-default-workers').children.length){
     buildWorkerPickList('c-default-workers',[]);
   }
 }
@@ -978,6 +993,31 @@ function applyRecurringAssignments(){
       });
     });
   });
+}
+
+// Remplit les cases Lun-Ven entre deux dates pour un chantier donné.
+// overwrite=false : ne touche pas aux cases déjà remplies (sécurité)
+// overwrite=true  : écrase tout (utilisé quand l'utilisateur fait "Appliquer plage")
+// Retourne le nombre de cellules effectivement modifiées.
+function fillRangeAssignments(chantierId, dateStart, dateEnd, workerIds, startTime, endTime, overwrite){
+  if(!chantierId||!dateStart||!dateEnd||!workerIds||!workerIds.length) return 0;
+  var d1=new Date(dateStart+'T12:00:00'), d2=new Date(dateEnd+'T12:00:00');
+  if(isNaN(d1)||isNaN(d2)||d2<d1) return 0;
+  var s=startTime||'07:30', e=endTime||'17:00';
+  var count=0, cursor=new Date(d1);
+  while(cursor<=d2){
+    var dow=cursor.getDay(); // 0=dim, 1=lun, ..., 5=ven, 6=sam
+    if(dow>=1 && dow<=5){ // Lun à Ven uniquement
+      var dKey=dKeyOf(cursor);
+      var key=dKey+'_'+chantierId;
+      if(overwrite || !assign[key] || !assign[key].w || !assign[key].w.length){
+        assign[key]={w:workerIds.slice(),s:s,e:e};
+        count++;
+      }
+    }
+    cursor.setDate(cursor.getDate()+1);
+  }
+  return count;
 }
 
 // Génération PDF native avec jsPDF (compatible iPad/iPhone/Mac)
@@ -1273,12 +1313,18 @@ function openChantierModal(id){
   document.getElementById('c-notes').value=c?(c.notes||''):'';
   var recurrent=c?!!c.recurrent:false;
   document.getElementById('c-recurrent').checked=recurrent;
-  document.getElementById('c-recurrent-workers').style.display=recurrent?'':'none';
   buildWorkerPickList('c-default-workers',c&&c.defaultWorkers?c.defaultWorkers:[]);
+  // Adapte le message d'aide selon récurrent ou pas
+  var hint=document.getElementById('c-workers-hint');
+  if(hint){
+    hint.innerHTML=recurrent
+      ? '🔁 <b>Récurrent activé</b> — ces ouvriers seront ajoutés automatiquement chaque semaine, sur Lun→Sam, en plus de la plage de dates.'
+      : '💡 Sélectionne les ouvriers — ils seront pré-affectés Lun→Ven sur toute la période entre Date début et Date fin.';
+  }
   sel.cColor=c?c.color:COLORS[(chantiers.length+3)%COLORS.length];
   sel.cStatus=c?(c.status||'encours'):'encours';
   document.getElementById('c-date-debut').value=c?(c.dateDebut||''):'';
-  document.getElementById('c-date-fin').value=c?(c.dateFin||''):'';;
+  document.getElementById('c-date-fin').value=c?(c.dateFin||''):'';
   document.getElementById('c-del-btn').style.display=c?'':'none';
   buildColorPicker('c-colors','cColor');
   setStatusUI();
@@ -1294,18 +1340,35 @@ function saveChantier(){
   var name=document.getElementById('c-name').value.trim();
   if(!name){alert('Saisis le nom du chantier');return;}
   var recurrent=document.getElementById('c-recurrent').checked;
-  var defaultWorkers=recurrent?Array.from(document.querySelectorAll('#c-default-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));}):[];
+  // Les ouvriers sont TOUJOURS sauvegardés (plus seulement si récurrent)
+  var defaultWorkers=Array.from(document.querySelectorAll('#c-default-workers .w-pick.sel')).map(function(el){return parseInt(el.getAttribute('data-wid'));});
   var dateDebut=document.getElementById('c-date-debut').value;
   var dateFin=document.getElementById('c-date-fin').value;
   var data={name:name,address:document.getElementById('c-addr').value.trim(),phone:document.getElementById('c-phone').value.trim(),notes:document.getElementById('c-notes').value.trim(),color:sel.cColor,status:sel.cStatus,recurrent:recurrent,defaultWorkers:defaultWorkers,dateDebut:dateDebut,dateFin:dateFin};
+  var chantierId;
   if(editingChantier){
     var c=chantiers.find(function(x){return x.id===editingChantier;});
     if(c)Object.assign(c,data);
+    chantierId=editingChantier;
   }else{
     data.id=genId();
     chantiers.push(data);
+    chantierId=data.id;
+  }
+  // Remplissage auto Lun-Ven entre dateDebut et dateFin si ouvriers sélectionnés.
+  // overwrite=false pour ne pas écraser les cases que tu aurais déjà personnalisées.
+  var nFilled=0;
+  if(defaultWorkers.length && dateDebut && dateFin){
+    nFilled=fillRangeAssignments(chantierId, dateDebut, dateFin, defaultWorkers, '07:30', '17:00', false);
   }
   save();closeOverlay('chantier');render();
+  if(nFilled>0){
+    // Petit feedback discret pour confirmer que des cases ont été remplies
+    setTimeout(function(){
+      var msg=nFilled+' jour'+(nFilled>1?'s':'')+' planifié'+(nFilled>1?'s':'')+' automatiquement (Lun-Ven)';
+      console.log('[AG Planning] '+msg);
+    },50);
+  }
 }
 function deleteChantier(){
   if(!editingChantier)return;
@@ -1362,6 +1425,9 @@ function openAssignModal(chantierId,dateKey,dayLbl,dateLbl){
         +'</div>';
     }).join('');
   }
+  // Reset des champs de plage de dates
+  var rd=document.getElementById('a-range-debut');if(rd)rd.value='';
+  var rf=document.getElementById('a-range-fin');if(rf)rf.value='';
   showOverlay('assign');
 }
 function toggleWorkerPick(el){
@@ -1397,7 +1463,7 @@ function saveAssign(){
   }else{
     delete assign[key];
   }
-  // Jours additionnels cochés
+  // Jours additionnels cochés (semaine en cours)
   var extraDays=Array.from(document.querySelectorAll('#a-days-apply .day-pick.sel')).map(function(el){return el.getAttribute('data-day');});
   extraDays.forEach(function(dKey){
     var k=dKey+'_'+editingAssign.chantierId;
@@ -1407,6 +1473,18 @@ function saveAssign(){
       delete assign[k];
     }
   });
+  // Plage de dates Du / Au (Lun-Ven uniquement, écrase les cases existantes)
+  var rangeDebut=document.getElementById('a-range-debut').value;
+  var rangeFin=document.getElementById('a-range-fin').value;
+  if(rangeDebut && rangeFin && picks.length){
+    var nFilled=fillRangeAssignments(editingAssign.chantierId, rangeDebut, rangeFin, picks, s, e, true);
+    if(nFilled===0){
+      alert('Aucun jour ouvré (Lun-Ven) trouvé dans cette plage. Vérifie les dates.');
+    }
+  } else if((rangeDebut && !rangeFin) || (!rangeDebut && rangeFin)){
+    alert('Pour utiliser la plage de dates, remplis les 2 champs Du et Au.');
+    return;
+  }
   save();closeOverlay('assign');render();
 }
 function clearAssign(){
