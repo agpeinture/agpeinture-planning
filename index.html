@@ -721,6 +721,7 @@ function getMonday(d){var x=new Date(d);var day=x.getDay();x.setDate(x.getDate()
 function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
 function getWeekNum(d){var x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));var y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7);}
 function pad2(n){return n<10?'0'+n:''+n;}
+function dKeyOf(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
 function fmtDate(d){return pad2(d.getDate())+'/'+pad2(d.getMonth()+1);}
 function fmtLong(d){return d.getDate()+' '+MONTHS[d.getMonth()];}
 function genId(){return Date.now()*1000+Math.floor(Math.random()*1000);}
