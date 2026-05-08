@@ -682,7 +682,7 @@ function checkPwd(){
         window._fbTimer=setTimeout(function(){
           window.fbSave();
           fbHasChanges=false;
-        },2000);
+        },600);
         var el=document.getElementById('fb-status');
         if(el){el.textContent='☁️ Sauvegarde...';el.style.color='#f39c12';}
       }
@@ -702,11 +702,24 @@ function checkPwd(){
         try{window.fbSave();}catch(e){}
       }
     });
-    
-    // Sauvegarde aussi quand Safari passe en arrière-plan (iOS)
-    document.addEventListener('visibilitychange',function(){
-      if(document.visibilityState==='hidden'&&fbHasChanges&&window.fbSave){
+    window.addEventListener('pagehide',function(){
+      if(fbHasChanges&&window.fbSave){
         try{window.fbSave();fbHasChanges=false;}catch(e){}
+      }
+    });
+    
+    // Quand Safari passe en arrière-plan : force save immédiat (sans attendre débounce)
+    // Quand Safari redevient visible : force reload pour récupérer modifs des autres appareils
+    document.addEventListener('visibilitychange',function(){
+      if(document.visibilityState==='hidden'){
+        if(fbHasChanges&&window.fbSave){
+          clearTimeout(window._fbTimer);
+          try{window.fbSave();fbHasChanges=false;}catch(e){}
+        }
+      } else if(document.visibilityState==='visible'){
+        if(window.fbForceReload){
+          setTimeout(function(){ window.fbForceReload(); },200);
+        }
       }
     });
   }catch(e){
