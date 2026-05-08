@@ -622,6 +622,19 @@ function checkPwd(){
       if(!t){t=document.createElement('div');t.id='sync-toast-p';t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#27ae60;color:white;padding:10px 18px;border-radius:24px;font-family:Inter,sans-serif;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;';document.body.appendChild(t);}
       t.textContent=msg;t.style.background=color||'#27ae60';t.style.opacity='1';clearTimeout(window._toastTP);window._toastTP=setTimeout(function(){t.style.opacity='0';},1800);
     }
+    // Indicateur permanent
+    window.fbLastSaveP = null;
+    function updateSyncStatusP(){
+      if(!window.fbLastSaveP) return;
+      var ago = Math.round((Date.now() - window.fbLastSaveP) / 1000);
+      var txt;
+      if(ago < 5) txt = '✓ À jour';
+      else if(ago < 60) txt = '✓ Sauvé il y a '+ago+'s';
+      else if(ago < 3600) txt = '✓ Sauvé il y a '+Math.round(ago/60)+'min';
+      else txt = '✓ Sauvé il y a '+Math.round(ago/3600)+'h';
+      fbSetStatus(txt, '#27ae60');
+    }
+    setInterval(updateSyncStatusP, 10000);
 
     window.fbSave=function(){
       try{
@@ -630,7 +643,8 @@ function checkPwd(){
         data._lastSave=Date.now();
         fbSetStatus('☁️ Sauvegarde...','#f39c12');
         DOC_REF.set(data).then(function(){
-          fbSetStatus('☁️ Synchronisé','#27ae60');
+          window.fbLastSaveP = Date.now();
+          fbSetStatus('✓ À jour','#27ae60');
           showSyncToastP('✅ Sauvegardé','#27ae60');
         }).catch(function(e){
           fbSetStatus('⚠️ '+(e.code||e.message),'#e74c3c');
