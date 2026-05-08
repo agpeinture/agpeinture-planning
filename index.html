@@ -709,18 +709,16 @@ function checkPwd(){
     });
     
     // Quand Safari passe en arrière-plan : force save immédiat (sans attendre débounce)
-    // Quand Safari redevient visible : force reload pour récupérer modifs des autres appareils
     document.addEventListener('visibilitychange',function(){
       if(document.visibilityState==='hidden'){
         if(fbHasChanges&&window.fbSave){
           clearTimeout(window._fbTimer);
           try{window.fbSave();fbHasChanges=false;}catch(e){}
         }
-      } else if(document.visibilityState==='visible'){
-        if(window.fbForceReload){
-          setTimeout(function(){ window.fbForceReload(); },200);
-        }
       }
+      // Note : pas de fbForceReload sur visible (iOS déclenche visibilitychange
+      // trop souvent, ça écraserait les modifs locales). onSnapshot pousse les
+      // modifs des autres appareils en arrière-plan.
     });
   }catch(e){
     fbSetStatus('💾 Mode local','#7f8c8d');
