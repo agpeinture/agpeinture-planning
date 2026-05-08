@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="AG Planning">
@@ -653,23 +656,42 @@ function checkPwd(){
         if(!fbStarted){fbStarted=true;if(window.initApp)window.initApp();}
       });
     };
-    window.fbForceReload=function(){
+    window.fbForceReload=function(verbose){
+      if(verbose===undefined) verbose=true;
       fbSetStatus('☁️ Chargement...','#f39c12');
       DOC_REF.get().then(function(doc){
         if(doc.exists){
           var data=doc.data();
+          var nw=0,nc=0,na=0;
+          try{ nw = JSON.parse(data.agp_workers||'[]').length; }catch(e){}
+          try{ nc = JSON.parse(data.agp_chantiers||'[]').length; }catch(e){}
+          try{ var a = JSON.parse(data.agp_assign||'{}'); na = Object.keys(a).length; }catch(e){}
           window._fbLoading=true;
           KEYS.forEach(function(k){if(data[k])localStorage.setItem(k,data[k]);});
           window._fbLoading=false;
           fbSetStatus('✅ Données chargées !','#27ae60');
+          if(verbose){
+            var msg = '✅ Données chargées du cloud :\n\n'
+              + '👷 Ouvriers : '+nw+'\n'
+              + '🏗️ Chantiers : '+nc+'\n'
+              + '📅 Affectations : '+na;
+            if(nw===0 && nc===0 && na===0) msg = '⚠️ Le cloud est vide (rien à charger)';
+            alert(msg);
+          }
           try{
             workers=JSON.parse(localStorage.getItem('agp_workers')||'[]');
             chantiers=JSON.parse(localStorage.getItem('agp_chantiers')||'[]');
             assign=JSON.parse(localStorage.getItem('agp_assign')||'{}');
             if(typeof render==='function')render();
           }catch(e){}
-        }else{fbSetStatus('☁️ Aucune donnée cloud','#f39c12');}
-      }).catch(function(e){fbSetStatus('⚠️ '+(e.code||e.message),'#e74c3c');});
+        }else{
+          fbSetStatus('☁️ Aucune donnée cloud','#f39c12');
+          if(verbose) alert('⚠️ Aucune donnée trouvée dans le cloud.\n\nLe document Firebase est vide.');
+        }
+      }).catch(function(e){
+        fbSetStatus('⚠️ '+(e.code||e.message),'#e74c3c');
+        if(verbose) alert('❌ Erreur de chargement :\n\n'+(e.code||'')+'\n'+(e.message||e));
+      });
     };
     window.fbLoad();
     var _origSet=localStorage.setItem.bind(localStorage);
@@ -708,17 +730,23 @@ function checkPwd(){
       }
     });
     
-    // Quand Safari passe en arrière-plan : force save immédiat (sans attendre débounce)
+    var lastVisibleReloadP = 0;
     document.addEventListener('visibilitychange',function(){
       if(document.visibilityState==='hidden'){
         if(fbHasChanges&&window.fbSave){
           clearTimeout(window._fbTimer);
           try{window.fbSave();fbHasChanges=false;}catch(e){}
         }
+      } else if(document.visibilityState==='visible'){
+        // Reload conditionnel et protégé
+        var now = Date.now();
+        var ae = document.activeElement;
+        var inputFocused = ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT');
+        if(!fbHasChanges && !inputFocused && (now-lastVisibleReloadP) > 30000){
+          lastVisibleReloadP = now;
+          if(window.fbForceReload) setTimeout(function(){window.fbForceReload(false);},200);
+        }
       }
-      // Note : pas de fbForceReload sur visible (iOS déclenche visibilitychange
-      // trop souvent, ça écraserait les modifs locales). onSnapshot pousse les
-      // modifs des autres appareils en arrière-plan.
     });
   }catch(e){
     fbSetStatus('💾 Mode local','#7f8c8d');
