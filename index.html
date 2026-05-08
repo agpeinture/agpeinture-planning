@@ -616,6 +616,13 @@ function checkPwd(){
     var KEYS=['agp_workers','agp_chantiers','agp_assign'];
     var fbStarted=false;
 
+    // Toast visuel rassurant
+    function showSyncToastP(msg,color){
+      var t=document.getElementById('sync-toast-p');
+      if(!t){t=document.createElement('div');t.id='sync-toast-p';t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#27ae60;color:white;padding:10px 18px;border-radius:24px;font-family:Inter,sans-serif;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;';document.body.appendChild(t);}
+      t.textContent=msg;t.style.background=color||'#27ae60';t.style.opacity='1';clearTimeout(window._toastTP);window._toastTP=setTimeout(function(){t.style.opacity='0';},1800);
+    }
+
     window.fbSave=function(){
       try{
         var data={};
@@ -624,7 +631,11 @@ function checkPwd(){
         fbSetStatus('☁️ Sauvegarde...','#f39c12');
         DOC_REF.set(data).then(function(){
           fbSetStatus('☁️ Synchronisé','#27ae60');
-        }).catch(function(e){fbSetStatus('⚠️ '+(e.code||e.message),'#e74c3c');});
+          showSyncToastP('✅ Sauvegardé','#27ae60');
+        }).catch(function(e){
+          fbSetStatus('⚠️ '+(e.code||e.message),'#e74c3c');
+          showSyncToastP('⚠️ Erreur sync','#e74c3c');
+        });
       }catch(e){fbSetStatus('⚠️ '+e.message,'#e74c3c');}
     };
     window.fbLoad=function(){
