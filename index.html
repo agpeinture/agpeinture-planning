@@ -615,6 +615,15 @@ function checkPwd(){
     var DOC_REF=db.collection("appdata").doc("agpeinture-planning-data");
     var KEYS=['agp_workers','agp_chantiers','agp_assign'];
     var fbStarted=false;
+    // FONCTION GLOBALE pour déclencher cloud save directement (cf stock app)
+    window.triggerCloudSaveP=function(){
+      if(!window.fbSave) return;
+      fbHasChanges=true;
+      clearTimeout(window._fbTimer);
+      window._fbTimer=setTimeout(function(){window.fbSave&&window.fbSave();fbHasChanges=false;},600);
+      var el=document.getElementById('fb-status');
+      if(el){el.textContent='☁️ Sauvegarde...';el.style.color='#f39c12';}
+    };
 
     // Toast visuel rassurant
     function showSyncToastP(msg,color){
@@ -719,21 +728,29 @@ function checkPwd(){
       });
     };
     window.fbLoad();
-    var _origSet=localStorage.setItem.bind(localStorage);
     var fbHasChanges=false;
-    localStorage.setItem=function(key,val){
-      _origSet(key,val);
-      if(key&&key.indexOf('agp_')===0&&window.fbSave&&!window._fbLoading){
-        fbHasChanges=true;
-        clearTimeout(window._fbTimer);
-        window._fbTimer=setTimeout(function(){
-          window.fbSave();
-          fbHasChanges=false;
-        },600);
-        var el=document.getElementById('fb-status');
-        if(el){el.textContent='☁️ Sauvegarde...';el.style.color='#f39c12';}
-      }
-    };
+    // Hook robuste : se ré-installe si écrasé par Firebase SDK
+    function installHookP(){
+      if(localStorage.setItem.toString().indexOf("indexOf('agp_')")!==-1) return false;
+      var cur=localStorage.setItem.bind(localStorage);
+      localStorage.setItem=function(key,val){
+        cur(key,val);
+        if(key&&key.indexOf('agp_')===0&&window.fbSave&&!window._fbLoading){
+          fbHasChanges=true;
+          clearTimeout(window._fbTimer);
+          window._fbTimer=setTimeout(function(){
+            window.fbSave();
+            fbHasChanges=false;
+          },600);
+          var el=document.getElementById('fb-status');
+          if(el){el.textContent='☁️ Sauvegarde...';el.style.color='#f39c12';}
+        }
+      };
+      return true;
+    }
+    installHookP();
+    setTimeout(installHookP,500);setTimeout(installHookP,1500);setTimeout(installHookP,3000);setTimeout(installHookP,6000);
+    setInterval(installHookP,4000);
     
     // Filet de sécurité : sauvegarde automatique toutes les 30 secondes si modifs en attente
     setInterval(function(){
@@ -816,6 +833,7 @@ function save(){
   localStorage.setItem('agp_workers',JSON.stringify(workers));
   localStorage.setItem('agp_chantiers',JSON.stringify(chantiers));
   localStorage.setItem('agp_assign',JSON.stringify(assign));
+  if(window.triggerCloudSaveP) window.triggerCloudSaveP();
 }
 
 // === JOURS FERIES VAUD ===
